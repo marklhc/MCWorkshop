@@ -3,7 +3,7 @@ title: "Advancing Quantitative Science"
 subtitle: "with Monte Carlo Simulation <html><div style='float:left'></div><hr color='#EB811B' size=1px width=796px></html>"
 author: "Hok Chio (Mark) Lai"
 institute: "University of Southern California"
-date: "2019/05/16 (updated: `r Sys.Date()`)"
+date: "2019/05/16"
 output:
   xaringan::moon_reader:
     css: [slide-font.css, metropolis-fonts, default, metropolis]
@@ -52,7 +52,7 @@ myBib <- ReadBib("./references.bib", check = FALSE)
 - To study some target quantities in the population
     * Based on a limited sample
 - How do we know that a statistics/statistical method gets us to a reasonable answer?
-    * Analytical reasoning
+    * Analytic reasoning
     * Simulation
 
 ---
@@ -80,7 +80,7 @@ class: inverse, center, middle
     * Simulations as experiments
         * Whether there's a "treatment" effect (but not why)
     * Simulations help develop intuition
-        * Shouldn't replace analytical and theoretical reasoning 
+        * Shouldn't replace analytically and theoretical reasoning 
     * Simulations help evaluate substantive theories and empirical results
 
 ???
@@ -170,17 +170,17 @@ Try increasing `nsim` to 100, then 1,000
 # Exercise 
 
 ```{r, results='hide', echo=FALSE, animation.hook='ffmpeg', ffmpeg.format='gif', interval=0.2, dev='jpeg', message=FALSE}
-# set.seed(123)
-# nsim <- 1000  # 20 samples
-# sam <- rnorm(nsim)  # default is mean = 0 and sd = 1
-# plist <- vector("list", nsim / 10)
-# for (i in seq_along(plist)) {
-#   sam_t <- sam[1:(i * 10)]
-#   plist[[i]] <- ggplot(tibble(x = sam_t), aes(x = x)) + 
-#     geom_histogram(aes(y = ..density..)) + 
-#     stat_function(fun = dnorm, col = "red")  # overlay normal curve in red
-# }
-# plist
+set.seed(123)
+nsim <- 1000  # 20 samples
+sam <- rnorm(nsim)  # default is mean = 0 and sd = 1
+plist <- vector("list", nsim / 10)
+for (i in seq_along(plist)) {
+  sam_t <- sam[1:(i * 10)]
+  plist[[i]] <- ggplot(tibble(x = sam_t), aes(x = x)) +
+    geom_histogram(aes(y = ..density..)) +
+    stat_function(fun = dnorm, col = "red")  # overlay normal curve in red
+}
+plist
 ```
 
 
@@ -238,24 +238,6 @@ Simulating Means and Medians
 
 ---
 
-# Why Does MC Work?
-
-- Law of large number
-    * $\sum_{i = 1}^R T_i / R \overset{p}{\to} \theta$
-- When $R$ is large, 
-    + the empirical distribution $\hat{F}(t)$ converges to the true sampling distribution $F(t)$. 
-
----
-
-# How Good is the Approximation
-
-- Monte Carlo (MC) Error 
-    * Like standard error (SE) for a point estimate
-- For expectations (e.g., bias)
-    * MC Error = $\hat{\mathit{SD}}(\hat \theta) / \sqrt{R}$
-
----
-
 # When to use MC?
 
 - When it's difficult to analytically derive the sampling distribution
@@ -267,7 +249,53 @@ Simulating Means and Medians
 
 ---
 
-# Model-Based Simulation
+# A Simulation Study is an Experiment
+
+Experiment | Simulation
+-----------|------------
+Independent variables | Design factors 
+Experimental conditions | Simulation conditions
+Controlled variables | Other parameters
+Procedure/Manipulation | Data generating model
+Dependent variables | Evaluation criteria 
+Substantive theory | Statistical theory
+Participants | Replications
+
+---
+class: clear, center
+
+```{r, echo=FALSE, out.width='65%'}
+knitr::include_graphics("figures/Sigal&Chalmers_figure1.png")
+```
+
+`r Citep(myBib, "Sigal2016", after = ", Figure 1, p. 141")`
+
+---
+
+# Design
+
+Like experimental designs, conditions should be carefully chosen
+- What to manipulate? Sample size? Effect size? Why?
+    * Based on statistical theory and reasoning
+    * E.g., Gauss-Markov theorem: regression coefficients are unbiased with 
+    violations of distributional assumptions
+- What levels? Why?
+    * Needs to be realistic for empirical research
+    * Maybe based on previous systematic reviews, 
+    * Or a small review of your own
+    
+---
+
+# Design (cont'd)
+
+Full Factorial designs are most commonly used
+
+Other alternatives include fractional factorial, random levels, etc
+- See `r Citet(myBib, "skrondal2000")` for why they should be used more often
+
+---
+
+# Generate
 
 - Starts with a statistical data generating model
     * E.g., $Y_i = \beta_0 + \beta_1 X_i + e_i,\quad e_i \overset{\textrm{i.i.d.}}{\sim} N(0, \sigma^2)$
@@ -276,7 +304,7 @@ Simulating Means and Medians
         + Constants (parameters): $\beta_0$, $\beta_1$
     * $Y_i$ completely determined by $X_i, e_i, \beta_0, \beta_1$
     
-```{r, echo=FALSE, fig.height=4}
+```{r, echo=FALSE, fig.height=3.5}
 DiagrammeR::grViz("
 digraph reg {
 
@@ -311,7 +339,17 @@ knitr::include_graphics("figures/sampdist2.png")
 
 ---
 
-# Evaluation Criteria
+# Analyze
+
+Analyze the simulated data using one or more analytic approaches
+- Misspecification: study the impact when analytic model omits important aspects of data generating model
+    * E.g., ignoring clustering
+- Comparison of approaches
+    * E.g., Maximum likelihood vs. multiple imputation for missing data handling
+
+---
+
+# Summarize (Evaluation Criteria)
 
 - $\bar{\hat \theta}$ = $\sum_{i = 1}^R \hat \theta_i / R$
 - $\hat{\mathit{SD}}(\hat \theta)$ = 
@@ -355,10 +393,9 @@ For statistical inferences:
     * % where the sample CI contains $\theta$
 
 ---
+class: clear
 
-# Summary of Evaluation Criteria
-
-.font70[
+.font80[
 Criterion | Cutoff | Citation
 -----|-------|----------
 Bias |.|.
@@ -375,38 +412,14 @@ Power |.|.
 
 ---
 
-# A Simulation is an Experiment
+# Results
 
-Experiment | Simulation
------------|------------
-Independent variables | Design factors 
-Experimental conditions | Simulation conditions
-Controlled variables | Other parameters
-Procedure/Manipulation | Data generating model
-Dependent variables | Evaluation criteria
-Participants | Replications
+Just like you're analyzing real data
 
----
-
-# A Simulation is an Experiment
-
-Like experimental designs, conditions should be carefully chosen
-- What to manipulate? Sample size? Effect size? Why?
-    * Based on statistical theory and reasoning
-    * E.g., Gauss-Markov theorem: regression coefficients are unbiased with 
-    violations of distributional assumptions
-- What levels? Why?
-    * Needs to be realistic for empirical research
-    * A small lit review may be needed
-
----
-class: clear, center
-
-```{r, echo=FALSE, out.width='65%'}
-knitr::include_graphics("figures/Sigal&Chalmers_figure1.png")
-```
-
-`r Citep(myBib, "Sigal2016", after = ", Figure 1, p. 141")`
+- Plots, figures
+- ANOVA, regression
+    * E.g., 3 (sample size) × 4 (parameter values) 2 (models) design: 2 between
+    factors and 1 within factor
 
 ---
 class: inverse, center, middle
@@ -417,13 +430,43 @@ Simulation Example on Structural Equation Modeling
 
 ---
 
-# Summary of Steps
+# Number of Replications
 
-Copy the steps
+Should be justified rather than relying on rule of thumbs
+
+## Why Does MC Work?
+
+- Law of large number
+    * $\sum_{i = 1}^R T_i / R \overset{p}{\to} \theta$
+- When $R$ is large, 
+    + the empirical distribution $\hat{F}(t)$ converges to the true sampling distribution $F(t)$. 
 
 ---
 
-# Number of Replications
+# Number of Replications (cont'd)
+
+## How Good is the Approximation
+
+- Monte Carlo (MC) Error 
+    * Like standard error (SE) for a point estimate
+- For expectations (e.g., bias)
+    * MC Error = $\hat{\mathit{SD}}(\hat \theta) / \sqrt{R}$
+
+E.g., if one wants the MC error to be ≤2.5% of the sampling variability, 
+_R_ needs to be 1 / $.025^2$ = 1,600
+
+---
+
+# Number of Replications (cont'd)
+
+For power (also Type I error) and CI coverage, 
+* MC Error = $\sqrt{\frac{p (1 - p)}{R}}$
+
+E.g., with _R_ = 250, and empirical Type I error = 5%, 
+```{r}
+sqrt((.05 * (1 - .05)) / 250)
+```
+So _R_ should be increase for more precise estimates
 
 ---
 
@@ -447,6 +490,13 @@ See `r Citet(myBib, "boomsma2013")`, Table 2, p. 526 for a checklist
 
 ---
 
+# Other topics not covered
+
+- Error handling
+- Interfacing with other software (e.g., Mplus, LISREL)
+
+---
+
 # Further Readings
 
 `r Citet(myBib, "carsey2014")` for a gentle introduction
@@ -454,7 +504,7 @@ See `r Citet(myBib, "boomsma2013")`, Table 2, p. 526 for a checklist
 `r Citet(myBib, "SimDesign")` and `r Citet(myBib, "Sigal2016")` for using the R
 package `SimDesign`
 
-`r Citet(myBib, "Harwell2018")` for review of design and reporting practices
+`r Citet(myBib, "Harwell2018")` for a review of design and reporting practices
 
 `r Citet(myBib, "skrondal2000")`, `r Citet(myBib, "serlin2000")`, and 
 `r Citet(myBib, "bandalos2013")` for additional topics
