@@ -1,0 +1,8 @@
+book_filename: "notes"
+delete_merged_file: true
+new_session: yes
+rmd_files: ["index.Rmd", "simulate_mean_median.Rmd", "simulate_mlm.Rmd", 
+            "example_sem.Rmd"]
+language:
+  ui:
+    chapter_name: "Note "
