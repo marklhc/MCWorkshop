@@ -42,7 +42,7 @@ myBib <- ReadBib("./references.bib", check = FALSE)
 ]
 
 .pull-right[
-![](figures/Casino_Monte_Carlo.png)
+![](images/Casino_Monte_Carlo.png)
 ]
 
 ---
@@ -207,7 +207,7 @@ plist
 
 # What is a Good Estimator?
 
-![](figures/bias&efficiency.png)
+![](images/bias&efficiency.png)
 
 ---
 
@@ -265,7 +265,7 @@ Participants | Replications
 class: clear, center
 
 ```{r, echo=FALSE, out.width='65%'}
-knitr::include_graphics("figures/Sigal&Chalmers_figure1.png")
+knitr::include_graphics("images/Sigal&Chalmers_figure1.png")
 ```
 
 `r Citep(myBib, "Sigal2016", after = ", Figure 1, p. 141")`
@@ -334,7 +334,7 @@ digraph reg {
 # Model-Based Simulation
 
 ```{r, echo=FALSE, out.width='75%'}
-knitr::include_graphics("figures/sampdist2.png")
+knitr::include_graphics("images/sampdist2.png")
 ```
 
 ---
@@ -472,7 +472,7 @@ So _R_ should be increase for more precise estimates
 
 # Reporting MC Results
 
-![](figures/Boomsma_table1.png)
+![](images/Boomsma_table1.png)
 
 `r Citep(myBib, "boomsma2013", after = ", Table 1, p. 521")`
 

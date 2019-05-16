@@ -27,7 +27,7 @@ class: center, middle, inverse, title-slide
 </html>
 ### Hok Chio (Mark) Lai
 ### University of Southern California
-### 2019/05/16 (updated: 2019-05-15)
+### 2019/05/16
 
 ---
 
@@ -49,7 +49,7 @@ class: center, middle, inverse, title-slide
 ]
 
 .pull-right[
-![](figures/Casino_Monte_Carlo.png)
+![](images/Casino_Monte_Carlo.png)
 ]
 
 ---
@@ -59,7 +59,7 @@ class: center, middle, inverse, title-slide
 - To study some target quantities in the population
     * Based on a limited sample
 - How do we know that a statistics/statistical method gets us to a reasonable answer?
-    * Analytical reasoning
+    * Analytic reasoning
     * Simulation
 
 ---
@@ -87,7 +87,7 @@ class: inverse, center, middle
     * Simulations as experiments
         * Whether there's a "treatment" effect (but not why)
     * Simulations help develop intuition
-        * Shouldn't replace analytical and theoretical reasoning 
+        * Shouldn't replace analytically and theoretical reasoning 
     * Simulations help evaluate substantive theories and empirical results
 
 ???
@@ -118,7 +118,7 @@ rnorm(5, mean = 0, sd = 1)
 ```
 
 ```
-## [1] -0.7429967 -0.8630054 -0.5393221 -1.3911651  1.0588565
+## [1]  0.8402969  0.2800927  1.9436117  1.3453445 -0.9279642
 ```
 
 ```r
@@ -126,7 +126,7 @@ rnorm(5, mean = 0, sd = 1)  # number changed
 ```
 
 ```
-## [1] -1.14651615 -2.28543977  0.50037069 -0.08407281  0.55115522
+## [1]  1.59915247  0.02634574  0.01440032  0.03982828 -0.23947927
 ```
 
 ---
@@ -190,7 +190,7 @@ ggplot(tibble(x = sam), aes(x = x)) +
   stat_function(fun = dnorm, col = "red")  # overlay normal curve in red
 ```
 
-![](slides_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+![](2019mc_slides_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
 ]
 
 ---
@@ -204,7 +204,7 @@ Try increasing `nsim` to 100, then 1,000
 
 # Exercise 
 
-
+![](2019mc_slides_files/figure-html/unnamed-chunk-3.gif)
 
 
 ---
@@ -230,7 +230,7 @@ Try increasing `nsim` to 100, then 1,000
 
 # What is a Good Estimator?
 
-![](figures/bias&amp;efficiency.png)
+![](images/bias&amp;efficiency.png)
 
 ---
 
@@ -238,7 +238,7 @@ Try increasing `nsim` to 100, then 1,000
 
 - What is it?
 
-![](slides_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+![](2019mc_slides_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
 
 
 ---
@@ -247,24 +247,6 @@ class: inverse, center, middle
 # Example I
 
 Simulating Means and Medians
-
----
-
-# Why Does MC Work?
-
-- Law of large number
-    * `\(\sum_{i = 1}^R T_i / R \overset{p}{\to} \theta\)`
-- When `\(R\)` is large, 
-    + the empirical distribution `\(\hat{F}(t)\)` converges to the true sampling distribution `\(F(t)\)`. 
-
----
-
-# How Good is the Approximation
-
-- Monte Carlo (MC) Error 
-    * Like standard error (SE) for a point estimate
-- For expectations (e.g., bias)
-    * MC Error = `\(\hat{\mathit{SD}}(\hat \theta) / \sqrt{R}\)`
 
 ---
 
@@ -279,7 +261,51 @@ Simulating Means and Medians
 
 ---
 
-# Model-Based Simulation
+# A Simulation Study is an Experiment
+
+Experiment | Simulation
+-----------|------------
+Independent variables | Design factors 
+Experimental conditions | Simulation conditions
+Controlled variables | Other parameters
+Procedure/Manipulation | Data generating model
+Dependent variables | Evaluation criteria 
+Substantive theory | Statistical theory
+Participants | Replications
+
+---
+class: clear, center
+
+&lt;img src="images/Sigal&amp;Chalmers_figure1.png" width="65%" /&gt;
+
+(Sigal and Chalmers, 2016, Figure 1, p. 141)
+
+---
+
+# Design
+
+Like experimental designs, conditions should be carefully chosen
+- What to manipulate? Sample size? Effect size? Why?
+    * Based on statistical theory and reasoning
+    * E.g., Gauss-Markov theorem: regression coefficients are unbiased with 
+    violations of distributional assumptions
+- What levels? Why?
+    * Needs to be realistic for empirical research
+    * Maybe based on previous systematic reviews, 
+    * Or a small review of your own
+    
+---
+
+# Design (cont'd)
+
+Full Factorial designs are most commonly used
+
+Other alternatives include fractional factorial, random levels, etc
+- See Skrondal (2000) for why they should be used more often
+
+---
+
+# Generate
 
 - Starts with a statistical data generating model
     * E.g., `\(Y_i = \beta_0 + \beta_1 X_i + e_i,\quad e_i \overset{\textrm{i.i.d.}}{\sim} N(0, \sigma^2)\)`
@@ -288,19 +314,29 @@ Simulating Means and Medians
         + Constants (parameters): `\(\beta_0\)`, `\(\beta_1\)`
     * `\(Y_i\)` completely determined by `\(X_i, e_i, \beta_0, \beta_1\)`
     
-<div id="htmlwidget-841c2678f8fa2c7c5ee8" style="width:504px;height:288px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-841c2678f8fa2c7c5ee8">{"x":{"diagram":"\ndigraph reg {\n\n  # a \"graph\" statement\n  graph [overlap = true, fontsize = 10]\n\n  # several \"node\" statements\n  node [shape = box,\n        fontname = Helvetica]\n  X; Y\n\n  node [shape = circle,\n        fixedsize = true] // sets as circles\n  e\n\n  # several \"edge\" statements\n  X -> Y\n  e -> Y\n  {rank = same; X; Y;}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-daf636270d129b757355" style="width:504px;height:252px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-daf636270d129b757355">{"x":{"diagram":"\ndigraph reg {\n\n  # a \"graph\" statement\n  graph [overlap = true, fontsize = 10]\n\n  # several \"node\" statements\n  node [shape = box,\n        fontname = Helvetica]\n  X; Y\n\n  node [shape = circle,\n        fixedsize = true] // sets as circles\n  e\n\n  # several \"edge\" statements\n  X -> Y\n  e -> Y\n  {rank = same; X; Y;}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 
 
 ---
 
 # Model-Based Simulation
 
-&lt;img src="figures/sampdist2.png" width="75%" /&gt;
+&lt;img src="images/sampdist2.png" width="75%" /&gt;
 
 ---
 
-# Evaluation Criteria
+# Analyze
+
+Analyze the simulated data using one or more analytic approaches
+- Misspecification: study the impact when analytic model omits important aspects of data generating model
+    * E.g., ignoring clustering
+- Comparison of approaches
+    * E.g., Maximum likelihood vs. multiple imputation for missing data handling
+
+---
+
+# Summarize (Evaluation Criteria)
 
 - `\(\bar{\hat \theta}\)` = `\(\sum_{i = 1}^R \hat \theta_i / R\)`
 - `\(\hat{\mathit{SD}}(\hat \theta)\)` = 
@@ -344,10 +380,9 @@ For statistical inferences:
     * % where the sample CI contains `\(\theta\)`
 
 ---
+class: clear
 
-# Summary of Evaluation Criteria
-
-.font70[
+.font80[
 Criterion | Cutoff | Citation
 -----|-------|----------
 Bias |.|.
@@ -364,36 +399,14 @@ Power |.|.
 
 ---
 
-# A Simulation is an Experiment
+# Results
 
-Experiment | Simulation
------------|------------
-Independent variables | Design factors 
-Experimental conditions | Simulation conditions
-Controlled variables | Other parameters
-Procedure/Manipulation | Data generating model
-Dependent variables | Evaluation criteria
-Participants | Replications
+Just like you're analyzing real data
 
----
-
-# A Simulation is an Experiment
-
-Like experimental designs, conditions should be carefully chosen
-- What to manipulate? Sample size? Effect size? Why?
-    * Based on statistical theory and reasoning
-    * E.g., Gauss-Markov theorem: regression coefficients are unbiased with 
-    violations of distributional assumptions
-- What levels? Why?
-    * Needs to be realistic for empirical research
-    * A small lit review may be needed
-
----
-class: clear, center
-
-&lt;img src="figures/Sigal&amp;Chalmers_figure1.png" width="65%" /&gt;
-
-(Sigal and Chalmers, 2016, Figure 1, p. 141)
+- Plots, figures
+- ANOVA, regression
+    * E.g., 3 (sample size) × 4 (parameter values) 2 (models) design: 2 between
+    factors and 1 within factor
 
 ---
 class: inverse, center, middle
@@ -404,19 +417,54 @@ Simulation Example on Structural Equation Modeling
 
 ---
 
-# Summary of Steps
+# Number of Replications
 
-Copy the steps
+Should be justified rather than relying on rule of thumbs
+
+## Why Does MC Work?
+
+- Law of large number
+    * `\(\sum_{i = 1}^R T_i / R \overset{p}{\to} \theta\)`
+- When `\(R\)` is large, 
+    + the empirical distribution `\(\hat{F}(t)\)` converges to the true sampling distribution `\(F(t)\)`. 
 
 ---
 
-# Number of Replications
+# Number of Replications (cont'd)
+
+## How Good is the Approximation
+
+- Monte Carlo (MC) Error 
+    * Like standard error (SE) for a point estimate
+- For expectations (e.g., bias)
+    * MC Error = `\(\hat{\mathit{SD}}(\hat \theta) / \sqrt{R}\)`
+
+E.g., if one wants the MC error to be ≤2.5% of the sampling variability, 
+_R_ needs to be 1 / `\(.025^2\)` = 1,600
+
+---
+
+# Number of Replications (cont'd)
+
+For power (also Type I error) and CI coverage, 
+* MC Error = `\(\sqrt{\frac{p (1 - p)}{R}}\)`
+
+E.g., with _R_ = 250, and empirical Type I error = 5%, 
+
+```r
+sqrt((.05 * (1 - .05)) / 250)
+```
+
+```
+## [1] 0.01378405
+```
+So _R_ should be increase for more precise estimates
 
 ---
 
 # Reporting MC Results
 
-![](figures/Boomsma_table1.png)
+![](images/Boomsma_table1.png)
 
 (Boomsma, 2013, Table 1, p. 521)
 
@@ -434,6 +482,13 @@ See Boomsma (2013), Table 2, p. 526 for a checklist
 
 ---
 
+# Other topics not covered
+
+- Error handling
+- Interfacing with other software (e.g., Mplus, LISREL)
+
+---
+
 # Further Readings
 
 Carsey and Harden (2014) for a gentle introduction
@@ -441,7 +496,7 @@ Carsey and Harden (2014) for a gentle introduction
 Chalmers (2019) and Sigal and Chalmers (2016) for using the R
 package `SimDesign`
 
-Harwell, Kohli, and Peralta-Torres (2018) for review of design and reporting practices
+Harwell, Kohli, and Peralta-Torres (2018) for a review of design and reporting practices
 
 Skrondal (2000), Serlin (2000), and 
 Bandalos and Leite (2013) for additional topics
