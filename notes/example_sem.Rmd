@@ -1,6 +1,6 @@
 ---
 title: "Simulation Example on Structural Equation Modeling"
-author: "PSYC 621"
+author: "Mark Lai"
 date: "4/29/2019"
 output: 
   html_document: 

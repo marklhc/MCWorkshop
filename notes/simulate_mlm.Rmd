@@ -1,6 +1,6 @@
 ---
 title: "Simulating Multilevel Data"
-author: "PSYC 621"
+author: "Mark Lai"
 date: "4/26/2019"
 output: 
   html_document: 

@@ -1,6 +1,6 @@
 ---
 title: "Simulating Means and Medians"
-author: "PSYC 621"
+author: "Mark Lai"
 date: "4/26/2019"
 output: 
   html_document: 
