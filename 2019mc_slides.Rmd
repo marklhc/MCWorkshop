@@ -2,7 +2,6 @@
 title: "Advancing Quantitative Science"
 subtitle: "with Monte Carlo Simulation <html><div style='float:left'></div><hr color='#EB811B' size=1px width=796px></html>"
 author: "Hok Chio (Mark) Lai"
-institute: "University of Southern California"
 date: "2019/05/16"
 output:
   xaringan::moon_reader:
@@ -105,10 +104,12 @@ __data generating model__
 
 - Model: including both functional form and distributional assumptions
 
+.font80[
 ```{r rnorm}
 rnorm(5, mean = 0, sd = 1)
 rnorm(5, mean = 0, sd = 1)  # number changed
 ```
+]
 
 ---
 
@@ -120,12 +121,14 @@ rnorm(5, mean = 0, sd = 1)  # number changed
 - For replicability, <font color="red">__ALWAYS__</font> explicitly set the seed
 in the beginning
 
+.font80[
 ```{r seed}
 set.seed(1)
 rnorm(5, mean = 0, sd = 1)
 set.seed(1)
 rnorm(5, mean = 0, sd = 1)  # same seed, same number
 ```
+]
 
 ---
 
@@ -178,7 +181,9 @@ for (i in seq_along(plist)) {
   sam_t <- sam[1:(i * 10)]
   plist[[i]] <- ggplot(tibble(x = sam_t), aes(x = x)) +
     geom_histogram(aes(y = ..density..)) +
-    stat_function(fun = dnorm, col = "red")  # overlay normal curve in red
+    stat_function(fun = dnorm, col = "red") +  # overlay normal curve in red
+    annotate("text", label = paste("italic(n) == ", i * 10), 
+             parse = TRUE, x = Inf, y = Inf, vjust = 1, hjust = 1)
 }
 plist
 ```
@@ -493,7 +498,8 @@ See `r Citet(myBib, "boomsma2013")`, Table 2, p. 526 for a checklist
 # Other topics not covered
 
 - Error handling
-- Interfacing with other software (e.g., Mplus, LISREL)
+- Assessing convergence
+- Interfacing with other software (e.g., Mplus, LISREL, HLM)
 
 ---
 
@@ -519,8 +525,28 @@ class: inverse, center, middle
 
 # References
 
-.font40[
+.font70[
 ```{r, 'refs', results='asis', echo=FALSE}
-PrintBibliography(myBib)
+PrintBibliography(myBib, start = 1, end = 5)
+```
+]
+
+---
+
+# References (cont'd)
+
+.font70[
+```{r, 'refs2', results='asis', echo=FALSE}
+PrintBibliography(myBib, start = 6, end = 10)
+```
+]
+
+---
+
+# References (cont'd)
+
+.font70[
+```{r, 'refs3', results='asis', echo=FALSE}
+PrintBibliography(myBib, start = 11, end = 12)
 ```
 ]
