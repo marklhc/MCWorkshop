@@ -20,7 +20,8 @@ comma <- function(x, digits. = 2L) format(x, digits = digits., big.mark = ",")
 ```{r load_pkg, message=FALSE}
 # Load required packages
 library(tidyverse)
-theme_set(theme_bw())
+theme_set(theme_classic() +
+            theme(panel.grid.major.y = element_line(color = "grey92")))
 ```
 
 
@@ -126,7 +127,7 @@ Theta <- diag(0.5, nrow = 4)
 eta <- rmnorm(N, mean = alpha, varcov = Phi)
 # Generate residuals:
 e <- rmnorm(N, varcov = Theta)
-# Compute outcome scores
+# Compute outcome scores: y_i = t(Lambda %*% eta_i) + e
 y <- tcrossprod(eta, Lambda) + e
 # Make it a data frame
 colnames(y) <- paste0("y", 1:4)
@@ -137,7 +138,7 @@ If you want to check whether the simulated data is correct, generate with a larg
 
 ```{r}
 N_test <- 1e5
-eta_test <- rmnorm(N_test, varcov = Phi)
+eta_test <- rmnorm(N_test, mean = alpha, varcov = Phi)
 colMeans(eta_test)
 cov(eta_test)
 e_test <- rmnorm(N_test, varcov = Theta)
@@ -445,10 +446,17 @@ sim_outdata <- sim_outdata %>%
   # Make it long format
   gather("var", "val", m1_est:m2_se) %>% 
   separate(var, c("model", "var")) %>% 
-  spread(var, val)
+  spread(var, val) %>% 
+  # (Optional) Rename the levels of design factors to make it better looking in 
+  # the plots
+  mutate(model = factor(model, labels = c("Correctly specified", 
+                                          "Misspecified")), 
+         alpha2_lab = as_factor(paste0("alpha[2] == ", alpha2)), 
+         phi22_lab = as_factor(paste0("phi[22] == ", phi22)), 
+         N_lab = as_factor(paste0("italic(N) == ", N)))
 sim_sum <- sim_outdata %>% 
   # Summarize results by conditions
-  group_by(model, alpha2, phi22, N) %>% 
+  group_by(model, alpha2, phi22, N, alpha2_lab, phi22_lab, N_lab) %>% 
   summarise(ave_est = mean(est), 
             emp_sd = sd(est), 
             ave_se = mean(se)) %>% 
@@ -456,7 +464,8 @@ sim_sum <- sim_outdata %>%
   mutate(bias = ave_est - alpha2, 
          bias_mcse = emp_sd / sqrt(NREP), 
          std_bias = bias / emp_sd, 
-         rse_bias = (ave_se - emp_sd) / emp_sd)
+         rse_bias = (ave_se - emp_sd) / emp_sd) %>% 
+  ungroup()
 ```
 
 With relatively small number of conditions, one can present the results in a 
@@ -464,7 +473,10 @@ table (and it's handy in R):
 
 ```{r}
 sim_sum %>% 
-  select(model:N, bias, bias_mcse, std_bias, rse_bias) %>% 
+  select(model:N, 
+         Bias = bias, `Monte Carlo Error` = bias_mcse, 
+         `Standardized Bias` = std_bias, 
+         `Relative SE Error` = rse_bias) %>% 
   knitr::kable(digits = 3L)
 ```
 
@@ -477,19 +489,22 @@ sim_outdata %>%
   ggplot(aes(x = factor(N), y = est, color = model)) + 
   geom_boxplot() + 
   geom_hline(aes(yintercept = alpha2)) + 
-  facet_grid(alpha2 ~ phi22)
+  facet_grid(alpha2_lab ~ phi22_lab, labeller = label_parsed) + 
+  labs(x = "Sample Size (N)", y = "Estimates of Mean Slope")
 # Standardized bias
 sim_sum %>% 
   ggplot(aes(x = factor(N), y = std_bias, color = model)) + 
   geom_line(aes(group = model)) + 
   geom_hline(aes(yintercept = 0)) + 
-  facet_grid(alpha2 ~ phi22)
+  facet_grid(alpha2_lab ~ phi22_lab, labeller = label_parsed) + 
+  labs(x = "Sample Size (N)", y = "Standardized Bias")
 # Relative SE bias
 sim_sum %>% 
   ggplot(aes(x = factor(N), y = rse_bias, color = model)) + 
   geom_line(aes(group = model)) + 
   geom_hline(aes(yintercept = 0)) + 
-  facet_grid(alpha2 ~ phi22)
+  facet_grid(alpha2_lab ~ phi22_lab, labeller = label_parsed) + 
+  labs(x = "Sample Size (N)", y = "Relative Standard Error Bias")
 ```
 
 ## Exercise

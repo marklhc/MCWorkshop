@@ -499,6 +499,7 @@ See `r Citet(myBib, "boomsma2013")`, Table 2, p. 526 for a checklist
 
 - Error handling
 - Assessing convergence
+- Debugging
 - Interfacing with other software (e.g., Mplus, LISREL, HLM)
 
 ---

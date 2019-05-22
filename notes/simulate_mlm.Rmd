@@ -20,7 +20,8 @@ comma <- function(x, digits. = 2L) format(x, digits = digits., big.mark = ",")
 ```{r load_pkg, message=FALSE}
 # Load required packages
 library(tidyverse)
-theme_set(theme_bw())
+theme_set(theme_classic() +
+            theme(panel.grid.major.y = element_line(color = "grey92")))
 library(mnormt)
 library(lme4)
 ```
