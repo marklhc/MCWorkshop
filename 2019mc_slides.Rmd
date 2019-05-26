@@ -107,7 +107,7 @@ __data generating model__
 .font80[
 ```{r rnorm}
 rnorm(5, mean = 0, sd = 1)
-rnorm(5, mean = 0, sd = 1)  # number changed
+rnorm(5, mean = 0, sd = 1)  # numbers changed
 ```
 ]
 
@@ -126,7 +126,7 @@ in the beginning
 set.seed(1)
 rnorm(5, mean = 0, sd = 1)
 set.seed(1)
-rnorm(5, mean = 0, sd = 1)  # same seed, same number
+rnorm(5, mean = 0, sd = 1)  # same seed, same numbers
 ```
 ]
 

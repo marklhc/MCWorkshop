@@ -507,6 +507,21 @@ sim_sum %>%
   labs(x = "Sample Size (N)", y = "Relative Standard Error Bias")
 ```
 
+## Using the `SimDesign` package
+
+Recently, the `SimDesign` package was developed so that designing and running
+simulation studies can be more structured and organized. The package also 
+provides some great features such as parallel computing, fail-safe stopping, 
+gathering of error or warning messages, among others. Check out the paper by 
+Sigal & Chalmers (2016) as well as the package vignettes (https://cran.r-project.org/web/packages/SimDesign/index.html) for more 
+information. Below is the R code for running the latent growth example with 
+their package. Try it yourself!
+
+```{r, eval=FALSE, code=readLines("example_sem_SimDesign.R")}
+
+```
+
+
 ## Exercise
 
 1. From the simulation results, evaluate the relative efficiency of the 
