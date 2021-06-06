@@ -1,0 +1,368 @@
+---
+title: "Simulation Example on Structural Equation Modeling"
+author: "Mark Lai"
+date: "April 29, 2019, last updated on `r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  github_document: 
+    pandoc_args: --webtex
+    toc: true
+---
+
+\newcommand{\var}{\textrm{Var}}
+\newcommand{\bv}[1]{\boldsymbol{\mathbf{#1}}}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = ">#")
+comma <- function(x, digits. = 2L) format(x, digits = digits., big.mark = ",")
+```
+
+# Simulation Example on Structural Equation Modeling (SEM) Using the `SimDesign` Package
+
+Recently, the `SimDesign` package was developed so that designing and running simulation studies can be more structured and organized. The package also  provides some great features such as parallel computing, fail-safe stopping, gathering of error or warning messages, among others. Check out the paper by Sigal & Chalmers (2016) as well as the package vignettes (https://cran.r-project.org/web/packages/SimDesign/index.html) for more information. Below is a quick hands-on example for using the package. 
+
+```{r load_pkg, message=FALSE}
+# Load required packages
+library(tidyverse)
+theme_set(theme_classic() +
+            theme(panel.grid.major.y = element_line(color = "grey92")))
+library(SimDesign)
+library(mnormt)
+library(lavaan)
+```
+
+## Simulate Multivariate Data
+
+In SEM, when multivariate normality is assumed, one can either generate data directly using matrix algebra, or generate the latent variables first before generating the observed variables. The first method is faster, but the second method is more general and can be applied to situations like categorical data or multilevel data. Therefore, in this note we'll use the second method. 
+
+Let's do a latent growth model (LGM) similar to the one in the note "Simulating Multilevel Data." Here is the model in a latent growth model representation:
+$$\begin{bmatrix}
+    y_{0i} \\
+    y_{1i} \\
+    y_{2i} \\
+    y_{3i}
+  \end{bmatrix} = 
+  \bv \Lambda 
+  \begin{bmatrix}
+    \eta_{1i} \\
+    \eta_{2i}
+  \end{bmatrix} + 
+  \begin{bmatrix}
+    e_{0i} \\
+    e_{1i} \\
+    e_{2i} \\
+    e_{3i}
+  \end{bmatrix}$$
+where $y_{0i}, \ldots, y_{3i}$ are the outcome values for person $i$ from time 0 to time 3, $\eta_{1i}$ is the specific intercept for person $i$, $\eta_{2i}$ is the specific slope for person $i$, and $e_{0i}, \ldots, e_{3i}$ are the within-person level error term. The distributional assumptions are 
+
+$$
+  \begin{aligned}
+  \begin{bmatrix}
+    \eta_{1i} \\
+    \eta_{2i}
+  \end{bmatrix} & \sim 
+  \mathcal{N}\left(\begin{bmatrix}
+                \alpha_1 \\
+                \alpha_2
+              \end{bmatrix}, 
+              \begin{bmatrix}
+                \phi_{11} & \phi_{21} \\
+                \phi_{21} & \phi_{22}
+              \end{bmatrix}\right) \\
+  \begin{bmatrix}
+    e_{0i} \\
+    e_{1i} \\
+    e_{2i} \\
+    e_{3i}
+  \end{bmatrix} & \sim
+  \mathcal{N}\left(\begin{bmatrix}
+                0 \\
+                0 \\
+                0 \\
+                0
+              \end{bmatrix}, 
+              \begin{bmatrix}
+                \theta_{11} & 0 & 0 & 0 \\
+                0 & \theta_{22} & 0 & 0 \\
+                0 & 0 & \theta_{33} & 0 \\
+                0 & 0 & 0 & \theta_{44} \\
+              \end{bmatrix}\right)
+  \end{aligned}
+$$
+
+A path diagram is shown below:
+
+```{r semPaths-growth, message=FALSE}
+growth_model <- "i =~ 1*y1 + 1*y2 + 1*y3 + 1*y4
+                 s =~ 0*y1 + 1*y2 + 2*y3 + 3*y4
+                 i ~~ 1 * i
+                 s ~~ 0.2 * s + 0.1 * i
+                 y1 ~~ 0.5 * y1
+                 y2 ~~ 0.5 * y2
+                 y3 ~~ 0.5 * y3
+                 y4 ~~ 0.5 * y4
+                 i ~ 1 * 1
+                 s ~ 0.5 * 1"
+library(semPlot)
+semPaths(semPlotModel_lavaanModel(growth_model))
+```
+
+## Workflow for Using `SimDesign`
+
+### Step 1: Create data frame of design factors
+
+In a methodological experiment with Monte Carlo simulation, one usually generates millions of data sets across tens or hundreds of carefully chosen conditions. As an example, here is a small scale simulation study on LGM. The two goals are: (a) to understand the bias on the mean of slopes and its standard error estimates, and (b) to illustrate the difference between estimated and empirical standard error.
+
+For simplicity, I'll only choose three **designed factors** (i.e., manipulated independent variables), namely sample size, variance of the random slope in the data generating model, and the mean of the slopes. The design factors are  summarized here:
+
+- Sample size (_N_): 50, 100, 200
+- Variance of slopes ($\phi_{22}$): 0.1, 0.5 (i.e., 1/10 and 1/2 of the intercept
+variance)
+- Mean of slopes ($\alpha_2$): 1, 0.5
+
+Therefore, it's a 3 $\times$ 2 $\times$ 2 factorial design.
+
+```{r designfactor}
+# Design factors:
+designfactor <- createDesign(
+  N = c(50, 100, 200), 
+  phi22 = c(0.1, 0.5), 
+  alpha2 = c(0, 0.5)
+)
+designfactor
+```
+
+#### Fixed Values for the Study
+
+In a simulation study, we cannot manipulate every possible variables. So while we have designed on three design factors before, each with multiple levels, there are values that we want to set to some constant values, such as the mean and the variance of intercepts, etc. In `SimDesign` these will be passed to different functions using a named list called `fixed_objects`. Let's create such a list:
+
+```{r fixed_obj}
+fixed_obj <- list(phi11 = 1, 
+                  Lambda = cbind(1, seq_len(4)), 
+                  Theta = diag(0.5, nrow = 4))
+```
+
+
+### Step 2: Define a function for generating data
+
+Create function for generating the data:
+
+```{r gen_lgm_data}
+gen_lgm_data <- function(condition, fixed_objects = NULL) {
+  N <- condition$N
+  phi22 <- condition$phi22
+  alpha2 <- condition$alpha2
+  alpha <- c(1, alpha2)
+  Phi <- matrix(c(fixed_objects$phi11, phi22 / 2,
+                  phi22 / 2, phi22), nrow = 2)
+  Lambda <- fixed_objects$Lambda
+  Theta <- fixed_objects$Theta
+  # Generate latent factor scores
+  eta <- rmnorm(N, mean = alpha, varcov = Phi)
+  # Generate residuals:
+  e <- rmnorm(N, varcov = Theta)
+  # Compute outcome scores
+  y <- tcrossprod(eta, Lambda) + e
+  colnames(y) <- paste0("y", 1:4)
+  # Make it a data frame
+  as.data.frame(y)
+}
+```
+
+We can test that the function works for, say, condition 1 (i.e., row 1 of `designfactor`):
+
+```{r test_data}
+(test_data <- gen_lgm_data(designfactor[1, ], fixed_objects = fixed_obj))
+```
+
+If you want to check whether the simulated data is correct, generate with a large sample size, and check the means and covariances:
+
+```{r test-gen-large}
+large_test_df <- gen_lgm_data(tibble(N = 1e5, phi22 = 0.1, alpha2 = 0.5), 
+                              fixed_objects = fixed_obj)
+colMeans(large_test_df)
+cov(large_test_df)
+```
+
+#### Note: Other methods for generating SEM data
+
+Many SEM software or packages have capability in generating data with input of an SEM model. For example, in R, you can call Mplus using the  `MplusAutomation` package and use their `MONTECARLO` routine. In R, you can  generate SEM data using the `lavaan` package with the `simulateData()`  function, like the following example:
+
+```{r}
+# Using a previously defined SEM model:
+lavaan::simulateData(growth_model) %>% 
+  head() # shows only the first six cases
+```
+
+Personally, however, I prefer directly simulating data in R because 
+
+- it forces you to specify everything in the model in the way you want.
+Especially in Mplus there are a lot of hidden default settings that may mess up
+with your simulation; 
+- it makes the process of generating data more transparent;
+- it helps you learn the math behind the model;
+- it is more flexible as you can specify any distributional assumptions or 
+models not supported by the SEM packages. 
+
+### Step 3: Define a function for analyzing the simulated data
+
+In R, for running SEM models, the most common options are `lavaan`, `OpenMx`, and Mplus (via `MplusAutomation`). When possible, I'll stick to `lavaan` to avoid jumping between programs, so let's analyze the simulated data twice, first with the true model and second with a misspecified model where the random slope term is omitted (i.e., the variance of `s` is constrained to zero). 
+
+```{r analyze_lgm}
+analyze_lgm <- function(condition, dat, fixed_objects = NULL) {
+  m1 <- 'i =~ 1 * y1 + 1 * y2 + 1 * y3 + 1 * y4
+         s =~ 0 * y1 + 1 * y2 + 2 * y3 + 3 * y4
+         i ~~ s'
+  m2 <- 'i =~ 1 * y1 + 1 * y2 + 1 * y3 + 1 * y4
+         s =~ 0 * y1 + 1 * y2 + 2 * y3 + 3 * y4
+         s ~~ 0 * i + 0 * s'
+  # Run model 1
+  m1_fit <- growth(m1, data = dat)
+  # Run model 2
+  m2_fit <- growth(m2, data = dat)
+  # Extract parameter estimates and standard errors
+  ret <- c(coef(m1_fit)["s~1"], 
+           sqrt(vcov(m1_fit)["s~1", "s~1"]),
+           coef(m2_fit)["s~1"], 
+           sqrt(vcov(m2_fit)["s~1", "s~1"]))
+  names(ret) <- c("m1_est", "m1_se", "m2_est", "m2_se")
+  ret
+}
+```
+
+Test the function:
+
+```{r test-analyze}
+analyze_lgm(designfactor[1, ], dat = test_data)
+```
+
+### Step 4: Define a function for evaluating the sample results
+
+```{r evaluate}
+# Helper function for computing relative SE bias
+rse_bias <- function(est_se, est) {
+  est_se <- as.matrix(est_se)
+  est <- as.matrix(est)
+  est_se <- colMeans(est_se)
+  emp_sd <- apply(est, 2L, sd)
+  est_se / emp_sd - 1
+}
+evaluate_lgm <- function(condition, results, fixed_objects = NULL) {
+  alpha2 <- condition$alpha2
+  c(bias = bias(results[ , c("m1_est", "m2_est")], parameter = alpha2), 
+    std_bias = bias(results[ , c("m1_est", "m2_est")], parameter = alpha2, 
+                    type = "standardized"), 
+    rmse = RMSE(results[ , c("m1_est", "m2_est")], parameter = alpha2), 
+    rse_bias = rse_bias(results[ , c("m1_se", "m2_se")], 
+                        results[ , c("m1_est", "m2_est")])
+  )
+}
+```
+
+### Step 5: Test Run the simulation
+
+Trial run with 2 replications
+
+```{r sim_trial}
+sim_trial <- runSimulation(designfactor, 
+                           replications = 2, 
+                           generate = gen_lgm_data, 
+                           analyse = analyze_lgm, 
+                           summarise = evaluate_lgm, 
+                           fixed_objects = fixed_obj)
+```
+
+Hopefully it runs fine. If there's any error, we have to go back and check each component. The errors from `SimDesign` provides some hints. 
+
+### Step 6: Full simulation
+
+Now we're ready to run 500 replications. The `runSimulation()` function has a number of handy arguments. Here I will use `parallel = TRUE` and set `ncores` so that I use two cores. 
+
+An important thing to note is that when `parallel = TRUE`, one needs to also export the packages by specifying all the packages needed for the simulation via the `packages` argument. Here we will set `packages = c("mnormt", "lavaan")`. 
+
+```{r sim_result, eval = FALSE}
+sim_result <- runSimulation(designfactor, 
+                            replications = 500,
+                            generate = gen_lgm_data,
+                            analyse = analyze_lgm,
+                            summarise = evaluate_lgm,
+                            fixed_objects = fixed_obj,
+                            parallel = TRUE,
+                            ncores = min(parallel::detectCores() - 1, 2),
+                            packages = c("mnormt", "lavaan"))
+```
+
+## Summarize Simulation Results
+
+```{r read-sim_result, include = FALSE}
+sim_result <- readRDS("example_sem_results.RDS")
+```
+
+A handy feature of `SimDesign` is that it saves the package and other information used to simulation the data, as shown below
+
+```{r summary-sim_result}
+summary(sim_result)
+```
+
+### ANOVA
+
+First, because the model (m1 vs m2) is a within-condition factor, let's restructure the data
+
+```{r sim_result_long}
+sim_result_long <- sim_result %>%
+  # Add condition ID
+  rownames_to_column("con_id") %>%
+  pivot_longer(
+    bias.m1_est:rse_bias.m2_se,
+    names_to = c(".value", "model"),
+    names_pattern =
+      "(bias|std_bias|rmse|rse_bias)\\.(m1|m2)_.*",
+    names_ptypes =
+      list(model = factor(levels = c("m1", "m2")))
+  )
+sim_result_long
+```
+
+```{r anova_bias}
+# Function for computing eta-squared
+aov_etasq <- function(id, dv, data, between, within) {
+  trans_data <- data
+  trans_data[c(between, within)] <- 
+    lapply(trans_data[c(between, within)], as.factor)
+  form <- paste0(dv, " ~ ", paste(c(between, within), collapse = " * "), 
+                 " + Error(", id, "/", paste(within, collapse = " * "), ")")
+  form <- as.formula(form)
+  aov_mixed <- aov(form, data = trans_data)
+  sum_aov <- summary(aov_mixed)
+  tab <- do.call(rbind, unname(unlist(sum_aov, recursive = FALSE)))
+  tab$`Eta Sq` <- tab$`Sum Sq` / sum(tab$`Sum Sq`)
+  tab
+}
+aov_etasq("con_id", dv = "bias", data = sim_result_long, 
+          between = c("N", "phi22", "alpha2"), within = "model") %>%
+  knitr::kable(digits = 3L)
+```
+
+With relatively small number of conditions, one can present the results in a 
+table (and it's handy in R):
+
+```{r tab-results}
+sim_result_long %>% 
+  arrange(alpha2, phi22, N, phi22) %>%
+  select(`$\\alpha_{2}$` = alpha2,
+         `$\\phi_{22}$` = phi22,
+         N,
+         model,
+         `Standardized Bias` = std_bias, 
+         `Relative SE Error` = rse_bias) %>% 
+  knitr::kable(digits = 3L)
+```
+
+It is, however, recommended you try to plot the results, both for exploratory
+purpose and for better presentation of the results. 
+
+## Exercise
+
+1. From the simulation results, evaluate the relative efficiency of the 
+estimated average slope (i.e., $\alpha_2$) under model 2 relative to that under
+model 1. 
+
