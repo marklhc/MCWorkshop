@@ -1,0 +1,230 @@
+---
+title: "Simulating Means and Medians"
+author: "Mark Lai"
+date: "April 26, 2019, last updated on `r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  github_document: 
+    pandoc_args: --webtex
+    toc: true
+---
+
+\newcommand{\var}{\textrm{Var}}
+\newcommand{\bv}[1]{\boldsymbol{\mathbf{#1}}}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = ">#")
+comma <- function(x, digits. = 2L) format(x, digits = digits., big.mark = ",")
+```
+
+# Simulating Means and Medians
+
+```{r load-pkg, message=FALSE}
+# Load required packages
+library(tidyverse)
+theme_set(theme_classic() +
+            theme(panel.grid.major.y = element_line(color = "grey92")))
+```
+
+
+## Central Limit Theorem (CLT)
+
+We know that, based on the CLT, under very general regularity conditions, when sample size is large, the sampling distribution of the sample mean will follow a normal distribution, with mean equals to the population mean, $\mu$, and standard deviation (which is called the standard error in this case) equals the population _SD_ divided by the square root of the fixed sample size. Let $\bar X$ be the sample mean, then 
+
+$$\bar X \sim N\left(\mu, \frac{\sigma^2}{N}\right)$$
+
+### Examining CLT with Simulation
+
+Let's imagine that a researcher is interested in studying the house size in the Orlando, Florida, measured in 1,000 sq ft. Hypothetically, the researcher would like to assume assume that the population house sizes follow a $\chi^2$ distribution with four degrees of freedom, and would like to see how random samples of different houses would behave. If we use $X$ to represent the random variable for house sizes, the population can be described as
+$$X \sim \chi^2(4)$$
+```{r chisq4}
+ggplot(tibble(x = c(0, 20)), aes(x = x)) + 
+  stat_function(fun = dchisq, args = list(df = 5), bw = "SJ") + 
+  labs(y = "density")
+```
+As can be seen, the typical house size is around 2,000 to 5,000 sq ft. 
+
+It is known that for a $\chi^2(4)$ distribution, the population mean is $\mu$ = 4 and the population variance is $\sigma^2$ = $2 \mu$ = 8, so we expect the mean of the sample means to be 4, and the standard error to be $\sqrt{(8 / N)}$. 
+
+#### Sample size of 10
+
+Let's draw repeated samples of size 10 from this population. Here is the code for doing it once, using the `rchisq()` function:
+
+```{r sam1}
+set.seed(1928)
+sample_size <- 10  # define sample size
+sam1 <- rchisq(sample_size, df = 4)  # draw random sample
+ggplot(tibble(x = sam1), aes(x = "sample 1", y = x)) + 
+  geom_boxplot() +
+  geom_jitter(width = 0.05, height = 0) +
+  stat_summary(fun = mean, geom = "point", col = "red", size = 3)
+```
+
+The mean of the simulated sample is `r round(mean(sam1), 2)`, which is different from the population mean (of course) but not too far off. With simulation, we can see what happens with a few more samples
+
+```{r sam5}
+# Draw four more random sample
+new_sam <- replicate(4, expr = rchisq(sample_size, df = 4), 
+                     simplify = FALSE)
+sam <- c(list(sam1), new_sam)
+ggplot(tibble(sam, sample_id = factor(seq_len(5))) %>%
+         unnest(cols = sam), 
+       aes(x = sample_id, y = sam)) + 
+  geom_boxplot() +
+  geom_jitter(width = 0.05, height = 0) +
+  stat_summary(fun = mean, geom = "point", col = "red", size = 3)
+```
+
+Now do it 1,000 times, using a for loop. Also, set the seed so that results are replicable:
+
+```{r sim-chisq4-10}
+NREP <- 1000  # number of replications
+sample_size <- 10  # define sample size
+# Initialize place holders for results
+sam_means <- rep(NA, NREP)  # an empty vector with NREP elements
+for (i in seq_len(NREP)) {
+  sam_means[i] <- mean(rchisq(sample_size, df = 4))
+}
+# Plot the distribution of the means:
+ggplot(tibble(sam_means), aes(x = sam_means)) + 
+  geom_histogram()
+# Check normality
+ggplot(tibble(sam_means), aes(sample = sam_means)) + 
+  stat_qq() + 
+  stat_qq_line()
+# Descriptive statistics
+psych::describe(sam_means)
+```
+
+As can be seen, it's not fully normal. The mean of the sample means is `r round(mean(sam_means), 2)`, which is pretty close to the population mean of 4. The  standard error is `r round(sd(sam_means), 2)`, also similar to the theoretical value. 
+
+#### Sample size of 50
+
+Now, repeat the simulation with a sample size of 50
+
+```{r sim-chisq4-50}
+NREP <- 1000  # number of replications
+sample_size <- 50  # define sample size
+# Initialize place holders for results
+sam_means <- rep(NA, NREP)  # an empty vector with NREP elements
+for (i in seq_len(NREP)) {
+  sam_means[i] <- mean(rchisq(sample_size, df = 4))
+}
+# Plot the means:
+ggplot(tibble(sam_means), aes(x = sam_means)) + 
+  geom_histogram()
+# Check normality
+ggplot(tibble(sam_means), aes(sample = sam_means)) + 
+  stat_qq() + 
+  stat_qq_line()
+# Descriptive statistics
+psych::describe(sam_means)
+```
+
+The sampling distribution is closer to normal now. The standard error is of course smaller. 
+
+With these examples, hopefully you get an idea how simulation can be used to verify some theoretical results. Also, a lot of theoretical results only work for large samples, so simulation results fill the gap by providing properties  of some estimators (sample mean of a $\chi^2(4)$ distribution in this case) in finite samples. 
+
+## Comparing Means and Medians
+
+There is also a version of CLT for the sample medians, in that the median can also be used to estimate the population median. For symmetric distributions,  this means that the sample median can also be used to estimate the population  mean. Let's try a normal distribution with mean of 4 and variance of 8:
+
+```{r sim-median}
+NREP <- 1000  # number of replications
+sample_size <- 10  # define sample size
+# Initialize place holders for results
+sam_medians <- rep(NA, NREP)  # an empty vector with NREP elements
+for (i in seq_len(NREP)) {
+  sam_medians[i] <- median(rnorm(sample_size, mean = 4, sd = sqrt(8)))
+}
+# Plot the means:
+ggplot(tibble(sam_medians), aes(x = sam_medians)) + 
+  geom_histogram()
+# Check normality
+ggplot(tibble(sam_medians), aes(sample = sam_medians)) + 
+  stat_qq() + 
+  stat_qq_line()
+# Descriptive statistics
+psych::describe(sam_medians)
+```
+
+As can be seen, the sample median has a mean of `r mean(sam_medians)`, and a standard error of `r sd(sam_medians)`. Notably, this is larger than the  theoretical standard error of the sample mean, `r sqrt(8 / 10)`. 
+
+### Relative Efficiency
+
+Thus, under the same sample size with a normal population, the standard error of the sample median is larger than that of the sample mean. This means that,  on average, the sample mean will be closer to the population mean, even when both are unbiased. Therefore, the sample mean should be preferred, which is  what we do. 
+
+When comparing two _unbiased estimators_, we say that the one with a smaller sampling variance (i.e., squared standard error) to be more **efficient**. The relative efficiency of estimator $T_1$, relative to estimator $T_2$, is defined as
+
+$$\frac{\var(T_2)}{\var(T_1)}$$
+For example, based on our simulation results, the relative efficiency of the sample median, relative to the sample mean, is
+
+```{r re}
+var_sam_mean <- 8 / 10  # theoretical value
+var_sam_median <- var(sam_medians)
+(re_median_mean <- var_sam_mean / var_sam_median)
+```
+
+This means that in this case, the sample median is only `r comma(re_median_mean * 100)`% as efficient as the sample mean. Although it is true that for a normal distribution, the sample mean is more efficient than the sample median, there are situations where the sample median is more efficient. You can check that in the exercise. 
+
+### Mean squared error (MSE)
+
+The MSE is defined as the average squared distance from the sample estimator to the target quantity it estimates. we can obtain the MSE for the sample median  in the previous example as:
+
+```{r mse-sam-median}
+(mse_sam_median <- mean((sam_medians - 4)^2))
+```
+
+In general, for any estimators $T$ (with finite means and variances), the MSE can be decomposed as
+$$\text{Bias}(T)^2 + \var(T)$$
+so for unbiased estimators, MSE is the same as the sampling variance. On the other hand, for biased estimators, it is often of interest to compare their MSEs (or sometimes the square root of it, RMSE) to see which estimator has the best trade-off between biasedness and efficiency. Many estimators in statistics sacrifices a little bit in unbiasedness but get much smaller sampling variance. 
+
+## Exercise
+
+1. Generate a sample of 30 from a $t$ distribution with df = 4. Show a plot of the data. Compute the sample mean and SD.
+(Hint: you can use the `rt()` function.)
+
+2. Compare the efficiency of the sample mean and the sample median in estimating the mean of a population following a student $t$ distribution with df = 4. You can choose any sample size of at least 30. Which one, sample mean or sample median, is more efficient?
+
+```{r ex2-ans-1, eval = FALSE, include = FALSE}
+NREP <- 1000  # number of replications
+sample_size <- 30  # define sample size
+# Initialize place holders for results
+sam_means <- rep(NA, NREP)  # an empty vector with NREP elements
+for (i in seq_len(NREP)) {
+  sam_means[i] <- mean(rt(sample_size, df = 4))
+}
+# Plot the means:
+ggplot(tibble(sam_means), aes(x = sam_means)) + 
+  geom_histogram()
+# Check normality
+ggplot(tibble(sam_means), aes(sample = sam_means)) + 
+  stat_qq() + 
+  stat_qq_line()
+# Descriptive statistics
+psych::describe(sam_means)
+```
+
+```{r ex2-ans-2, eval=FALSE, include=FALSE}
+NREP <- 1000  # number of replications
+sample_size <- 30  # define sample size
+# Initialize place holders for results
+sam_medians <- rep(NA, NREP)  # an empty vector with NREP elements
+for (i in seq_len(NREP)) {
+  sam_medians[i] <- median(rt(sample_size, df = 4))
+}
+# Plot the means:
+ggplot(tibble(sam_medians), aes(x = sam_medians)) + 
+  geom_histogram()
+# Check normality
+ggplot(tibble(sam_medians), aes(sample = sam_medians)) + 
+  stat_qq() + 
+  stat_qq_line()
+# Descriptive statistics
+psych::describe(sam_medians)
+```
+
+```{r ex2-ans-3, eval=FALSE, include=FALSE}
+var_sam_mean <- var(sam_means)
+var_sam_median <- var(sam_medians)
+(re_median_mean <- var_sam_mean / var_sam_median)
+```
