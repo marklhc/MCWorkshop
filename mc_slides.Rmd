@@ -1,7 +1,7 @@
 ---
-title: "Advancing Quantitative Science"
-subtitle: "with Monte Carlo Simulation <html><div style='float:left'></div><hr color='#EB811B' size=1px width=796px></html>"
-author: "Hok Chio (Mark) Lai"
+title: "Advancing Quantitative Science With Monte Carlo Simulation"
+subtitle: "PsyPag & MSCP-Section Simulation Summer School <html><div style='float:left'></div><hr color='#EB811B' size=1px width=796px></html>"
+author: "Hok Chio (Mark) Lai, Winnie Wing-Yee Tse, & Yichi Zhang"
 date: "2021/06/16"
 output:
   xaringan::moon_reader:
@@ -13,7 +13,8 @@ output:
       countIncrementalSlides: false
 ---
 
-```{css echo = FALSE}
+```{css echo = FALSE, eval = FALSE}
+# Hide slide number when opacity = 0
 .remark-slide-number {
   opacity: 0; /* default: 0.5 */
 }
@@ -42,15 +43,9 @@ myBib <- ReadBib("./references.bib", check = FALSE)
 
 ### What is Monte Carlo (MC) simulation?
 
---
-
 ### Simulating Data From a Normal Distribution
 
---
-
-### Properties of Estimators
-
---
+### Properties of Statistical Methods
 
 ### Monte Carlo Simulation Study/Experiment
 
@@ -60,7 +55,7 @@ myBib <- ReadBib("./references.bib", check = FALSE)
 
 .pull-left[
 
-- 1930s-1940s: Nuclear physics
+- 1930s-1940s: Nuclear physics ([the Manhattan Project](https://www.atomicheritage.org/history/computing-and-manhattan-project))
 
    * Key figures:
    
@@ -68,9 +63,7 @@ myBib <- ReadBib("./references.bib", check = FALSE)
        * John von Neumann
        * Nicholas Metropolis
    
-   * Manhattan project: hydrogen bomb
-
-- Naming: Casino in Monaco
+   * Naming: Casino in Monaco
 
 ]
 
@@ -92,16 +85,17 @@ Image credit: sam garza from Los Angeles, USA, CC BY 2.0 <https://creativecommon
 
     * Based on a limited sample
 
+--
+
 - How do we know that a statistics/statistical method gets us to a reasonable answer?
 
     * Analytic method
 
     * Simulation
 
----
-class: inverse, center, middle
+--
 
-# MC is one way to understand the properties of one or more statistical procedures
+> ## MC is one way to understand the properties of one or more statistical procedures
 
 ---
 
@@ -114,37 +108,20 @@ class: inverse, center, middle
 - Simulate the _process of repeated random sampling_
 
     * E.g., repeatedly drawing sample of IQ scores of size 10 from a population
-    
+
+--
+
 - Approximate _sampling distributions_
     
     * Using **pseudorandom samples**
-    
+
+--
+
 - Study properties of **statistical methods**
 
     * regression coefficients, fit index
 
     * compare multiple estimators or modeling approaches
-
----
-exclude: true
-
-# What is it (cont'd)?
-
-- Based on Carsey & Harden (2014):
-
-    * Simulations as experiments
-
-        * Whether there's a "treatment" effect (but not why)
-
-    * Simulations help develop intuition
-
-        * Shouldn't replace analytically and theoretical reasoning 
-
-    * Simulations help evaluate substantive theories and empirical results
-
-???
-
-Sometimes analytic solution does not exist
 
 ---
 class: inverse, middle, center
@@ -173,7 +150,7 @@ rnorm(5, mean = 0, sd = 1)  # numbers changed
 
     * Completely determined by the **state** of the random number generator, which can be set by the seed
 
-- For replicability, set the seed explicitly
+> For replicability, set the seed explicitly
 
 ---
 
@@ -231,7 +208,7 @@ class: inverse, middle, center
 
 # Exercise 
 
-```{r animate-sim-norm, results = "hide", echo = FALSE, animation.hook = "ffmpeg", ffmpeg.format = "gif", interval = 0.2, dev = "jpeg", message = FALSE, fig.width = 4.5, fig.asp = 1, fig.retina = 2, fig.align = "center", out.width = "60%"}
+```{r animate-sim-norm, results = "hide", echo = FALSE, animation.hook = "ffmpeg", ffmpeg.format = "gif", interval = 0.2, dev = "jpeg", message = FALSE, fig.width = 4.5, fig.asp = 1, fig.retina = 2, fig.align = "center", out.width = "60%", cache = TRUE}
 set.seed(123)
 nsim <- 1000  # 20 samples
 sam <- rnorm(nsim)  # default is mean = 0 and sd = 1
@@ -291,19 +268,6 @@ One additional property: **Robustness**---resilience against outliers and assump
     * $T = \dfrac{\sum_i (X_i - \bar{X})^2}{N - 1}$ estimates $\theta = \sigma^2$
 
 ---
-exclude: true
-
-# Some Properties of Estimators
-
-- Unbiasedness
-
-- Consistency
-
-- Efficiency
-
-- Robustness
-
----
 
 # What is a Good Estimator?
 
@@ -340,25 +304,6 @@ class: inverse, center, middle
 ### Simulating Means and Medians
 
 ---
-exclude: true
-
-# When to use MC?
-
-- To understand statistical models concepts
-
-    * E.g., Mixed model, Type I error, Power
-
-- When it's difficult to analytically derive the sampling distribution
-    
-    * E.g., indirect effect, fit-indexes; Cohen's $d$, *SE*s of estimators
-    
-- When required assumptions are violated
-    
-    * E.g., normality, large sample
-    * Model is misspecified
-    * Used to check **robustness** of the estimator
-
----
 class: inverse, center, middle
 
 # Monte Carlo Simulation Study
@@ -389,17 +334,6 @@ Substantive theory | Statistical theory
 Participants | Replications
 
 ---
-exclude: true
-
-class: clear, center
-
-```{r, echo=FALSE, out.width='65%'}
-knitr::include_graphics("images/Sigal&Chalmers_figure1.png")
-```
-
-`r Citep(myBib, "Sigal2016", after = ", Figure 1, p. 141")`
-
----
 
 # Framework
 
@@ -407,12 +341,16 @@ knitr::include_graphics("images/Sigal&Chalmers_figure1.png")
 
 - Research questions
     * *What is the effect of ignoring random slopes in a growth model?*
+
+--
     
 - Design
     * *3 (N = 50, 100, 200) $\times$ 2 (slope variance = 0.1, 0.5) design*
     * *Constant: 4 time points, maximum likelihood estimation, etc*
     * *500 replications*
-    
+
+--
+
 - Date-generating model (fixed and random components)
     * *linear growth model with normally distributed errors*
 
@@ -424,9 +362,13 @@ knitr::include_graphics("images/Sigal&Chalmers_figure1.png")
     1. *slope estimate and standard error under correctly specified latent growth model with lavaan*
     2. *slope estimate and standard error under misspecified model*
 
+--
+
 - Evaluative measures
     * *convergence, bias, SE bias, relative efficiency*
-    
+
+--
+
 - Summary and reporting
     * *Table, plot*
 
@@ -498,17 +440,6 @@ knitr::include_graphics("images/sampdist2.png")
 ```
 
 ---
-exclude: true
-
-# Analyze
-
-Analyze the simulated data using one or more analytic approaches
-- Misspecification: study the impact when analytic model omits important aspects of data generating model
-    * E.g., ignoring clustering
-- Comparison of approaches
-    * E.g., Maximum likelihood vs. multiple imputation for missing data handling
-
----
 
 # Statistical Methods
 
@@ -520,72 +451,44 @@ Analyze the simulated data using one or more analytic approaches
 
 # Evaluative Measures
 
-.pull-left[
+Some definitions:
 
-- Mean estimate $\bar{\hat \theta} = \sum_{i = 1}^R \hat \theta_i / R$
-- Average estimated SE $\bar{\hat{\mathrm{SE}}}(\hat \theta) = \sum_{i = 1}^R \hat{\mathrm{SE}}(\hat \theta_i) / R$
-- Empirical SE $\hat{\mathit{SD}}(\hat \theta)$ = 
-  $\sqrt{\frac{\sum_{i = 1}^R (\theta_i - \bar{\hat \theta})^2}{R}}$
-
-]
-
---
-
-.pull-right[
-
-Some measure for evaluating estimators:
-
-- Bias
-    * Raw: $\bar{\hat \theta} - \theta$
-    * Relative: Bias / $\theta$
-    * Standardized: Bias / $\hat{\mathit{SD}}(\hat \theta)$
-- Relative efficiency (for unbiased estimators)
-    * $\mathrm{RE}(\hat \theta, \tilde \theta)$ = $\frac{\hat{\mathrm{SE}}^2(\tilde \theta)}{\hat{\mathrm{SE}}^2(\hat \theta)}$
-- Mean squared error (MSE)
-    * $\mathrm{Bias}^2 + \hat{\mathrm{Var}}(\hat \theta)$
-    * RMSE = $\sqrt{\mathrm{MSE}}$
-    
-]
+|      |                               |
+| ---- | ----------------------------- |
+| Mean estimate | $\bar{\hat \theta} = \sum_{i = 1}^R \hat \theta_i / R$ |
+| Average estimated SE | $\bar{\hat{\mathrm{SE}}}(\hat \theta) = \sum_{i = 1}^R \hat{\mathrm{SE}}(\hat \theta_i) / R$ |
+| Empirical SE | $\hat{\mathit{SD}}(\hat \theta)$ = $\sqrt{\frac{\sum_{i = 1}^R (\theta_i - \bar{\hat \theta})^2}{R}}$ |
 
 ---
 
-# Evaluation Criteria (cont'd)
+For estimators
+
+|      |                               |
+| ---- | ----------------------------- |
+| Raw bias | $\bar{\hat \theta} - \theta$ |
+| Relative bias | Bias / $\theta$         |
+| Standardized bias | Bias / $\hat{\mathit{SD}}(\hat \theta)$ |
+| Relative efficiency (RE; for unbiased estimators) | $\mathrm{RE}(\hat \theta, \tilde \theta)$ = $\frac{\hat{\mathit{SD}}^2(\tilde \theta)}{\hat{\mathit{SD}}^2(\hat \theta)}$ |
+| Mean squared error (MSE) | $\mathrm{Bias}^2 + \hat{\mathrm{Var}}(\hat \theta)$ |
+| Root Mean squared error (RMSE) | $\sqrt{\mathrm{MSE}}$ |
+
+---
 
 For uncertainty
 
-- SE bias
-    * Raw: $\bar{\mathit{SE}}(\hat \theta) - \hat{\mathit{SD}}(\hat \theta)$
-    * Relative: SE bias / $\hat{\mathit{SD}}(\hat \theta)$
-- Coverage
-    * proportion of sample CI containing $\theta$
+|      |                               |
+| ---- | ----------------------------- |
+| SE bias | $\bar{\mathit{SE}}(\hat \theta) - \hat{\mathit{SD}}(\hat \theta)$ |
+| Relative SE bias | SE bias / $\hat{\mathit{SD}}(\hat \theta)$ |
+| Coverage | proportion of sample CIs containing $\theta$ |
 
 --
 
 For statistical inferences:
 
-- Power/Empirical Type I error rates
-    * % with $p < \alpha$ (usually $\alpha$ = .05)
-- Coverage of $C$% CI (e.g., $C$ = 95%)
-    * % where the sample CI contains $\theta$
-
----
-exclude: true
-class: clear
-
-.font80[
-Criterion | Cutoff | Citation
------|-------|----------
-Bias |.|.
-Relative bias | ≤5% | `r Citet(myBib, "hoogland1998")`
-Standardized bias | ≤.40 | `r Citet(myBib, "collins2001")`
-*SE* bias |.|.
-Relative *SE* bias | ≤10% | `r Citet(myBib, "hoogland1998")`
-MSE |.|.
-RMSE |.|.
-Empirical Type I error (α = .05) | 2.5% - 7.5% | `r Citet(myBib, "bradley1978")`
-Power |.|.
-95% CI Coverage | 91%-98% | `r Citet(myBib, "muthen2002")`
-]
+|      |                               |
+| ---- | ----------------------------- |
+| Power/Empirical Type I error rates | proportion with $p < \alpha$ (usually $\alpha$ = .05) |
 
 ---
 
@@ -607,25 +510,10 @@ class: inverse, center, middle
 Simulation Example on Structural Equation Modeling
 
 ---
-exclude: true
 
 # Number of Replications
 
-Should be justified rather than relying on rule of thumbs
-
-## Why Does MC Work?
-
-- Law of large number
-    * $\sum_{i = 1}^R T_i / R \overset{p}{\to} \theta$
-- When $R$ is large, 
-    + the empirical distribution $\hat{F}(t)$ converges to the true sampling distribution $F(t)$. 
-
----
-exclude: true
-
-# Number of Replications (cont'd)
-
-## How Good is the Approximation
+MC requires large number of replications. But how large?
 
 - Monte Carlo (MC) Error 
     * Like standard error (SE) for a point estimate
@@ -635,51 +523,12 @@ exclude: true
 E.g., if one wants the MC error to be ≤2.5% of the sampling variability, 
 _R_ needs to be 1 / $.025^2$ = 1,600
 
----
-exclude: true
+--
 
-# Number of Replications (cont'd)
-
-For power (also Type I error) and CI coverage, 
+For power/Type I error/CI coverage, 
 * MC Error = $\sqrt{\frac{p (1 - p)}{R}}$
 
-E.g., with _R_ = 250, and empirical Type I error = 5%, 
-```{r}
-sqrt((.05 * (1 - .05)) / 250)
-```
-So _R_ should be increase for more precise estimates
-
----
-exclude: true
-
-# Reporting MC Results
-
-![](images/Boomsma_table1.png)
-
-`r Citep(myBib, "boomsma2013", after = ", Table 1, p. 521")`
-
-See `r Citet(myBib, "boomsma2013")`, Table 2, p. 526 for a checklist
-
----
-exclude: true
-
-# Efficiency tips
-
-- Things that don't change should be outside of a loop
-- Initialize place holders when using for-loops
-- [Vectorize](https://adv-r.hadley.nz/perf-improve.html#vectorise)
-- Strip out unnecessary computations
-- Parallel computing (using the `future` package)
-
----
-exclude: true
-
-# Other topics not covered
-
-- Error handling
-- Assessing convergence
-- Debugging
-- Interfacing with other software (e.g., Mplus, LISREL, HLM)
+E.g., with _R_ = 250, and empirical Type I error = 5%, MC Error = `r round(sqrt((.05 * (1 - .05)) / 250) * 100, 2)`%
 
 ---
 
@@ -701,6 +550,16 @@ class: inverse, center, middle
 
 # Thanks!
 
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
+
+Contact:
+
+Mark Lai (hokchiol@usc.edu)
+
+Winnie Wing-Yee Tse (wingyeet@usc.edu)
+
+Yichi Zhang (yzhang97@usc.edu)
+
 ---
 
 # References
@@ -717,16 +576,6 @@ PrintBibliography(myBib, start = 1, end = 5)
 
 .font70[
 ```{r, 'refs2', results='asis', echo=FALSE}
-PrintBibliography(myBib, start = 6, end = 9)
-```
-]
-
----
-
-# References (cont'd)
-
-.font70[
-```{r, 'refs3', results='asis', echo=FALSE}
-PrintBibliography(myBib, start = 10, end = 13)
+PrintBibliography(myBib, start = 6, end = 8)
 ```
 ]
