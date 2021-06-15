@@ -1,8 +1,10 @@
 ---
 title: "Simulation Example on Structural Equation Modeling"
 author: "Mark Lai"
-date: "April 29, 2019, last updated on `r format(Sys.time(), '%B %d, %Y')`"
+date: "April 29, 2019, last updated by Winnie Tse on `r format(Sys.time(), '%B %d, %Y')`"
 output: 
+  html_document:
+    toc: true
   github_document: 
     pandoc_args: --webtex
     toc: true
@@ -117,7 +119,7 @@ For simplicity, I'll only choose three **designed factors** (i.e., manipulated i
 - Sample size (_N_): 50, 100, 200
 - Variance of slopes ($\phi_{22}$): 0.1, 0.5 (i.e., 1/10 and 1/2 of the intercept
 variance)
-- Mean of slopes ($\alpha_2$): 1, 0.5
+- Mean of slopes ($\alpha_2$): 0, 0.5
 
 Therefore, it's a 3 $\times$ 2 $\times$ 2 factorial design.
 
@@ -229,11 +231,26 @@ analyze_lgm <- function(condition, dat, fixed_objects = NULL) {
 }
 ```
 
-Test the function:
+Test the analysis function:
 
 ```{r test-analyze}
 analyze_lgm(designfactor[1, ], dat = test_data)
 ```
+
+Behind the scene, `SimDesign` saves the analysis results `ret` to a matrix row by row per simulated data set. As an illustration, below shows how the result matrix looks like. 
+
+```{r behind-the-scene-analyze}
+set.seed(123)
+rep <- 5
+test_ret <- NULL
+for (i in 1:rep) {
+  test_data <- gen_lgm_data(designfactor[1, ], fixed_objects = fixed_obj)
+  test_ret <- rbind(test_ret, 
+                    analyze_lgm(designfactor[1, ], dat = test_data))
+}
+test_ret
+```
+
 
 ### Step 4: Define a function for evaluating the sample results
 
@@ -257,6 +274,13 @@ evaluate_lgm <- function(condition, results, fixed_objects = NULL) {
   )
 }
 ```
+
+Test the evaluation function:
+
+```{r test-evaluate}
+evaluate_lgm(designfactor[1, ], test_ret)
+```
+
 
 ### Step 5: Test Run the simulation
 
@@ -288,7 +312,8 @@ sim_result <- runSimulation(designfactor,
                             fixed_objects = fixed_obj,
                             parallel = TRUE,
                             ncores = min(parallel::detectCores() - 1, 2),
-                            packages = c("mnormt", "lavaan"))
+                            packages = c("mnormt", "lavaan"), 
+                            save_results = TRUE)
 ```
 
 ## Summarize Simulation Results
@@ -339,7 +364,7 @@ aov_etasq <- function(id, dv, data, between, within) {
 }
 aov_etasq("con_id", dv = "bias", data = sim_result_long, 
           between = c("N", "phi22", "alpha2"), within = "model") %>%
-  knitr::kable(digits = 3L)
+  knitr::kable(digits = 5L)
 ```
 
 With relatively small number of conditions, one can present the results in a 
@@ -362,7 +387,7 @@ purpose and for better presentation of the results.
 
 ## Exercise
 
-1. From the simulation results, evaluate the relative efficiency of the 
+1. From the simulation results, evaluate the relative efficiency (`rse_bias`) of the 
 estimated average slope (i.e., $\alpha_2$) under model 2 relative to that under
 model 1. 
 

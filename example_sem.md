@@ -1,27 +1,27 @@
 Simulation Example on Structural Equation Modeling
 ================
 Mark Lai
-April 29, 2019, last updated on June 06, 2021
+April 29, 2019, last updated by Winnie Tse on June 14, 2021
 
--   [Simulation Example on Structural Equation Modeling (SEM) Using the
+  - [Simulation Example on Structural Equation Modeling (SEM) Using the
     `SimDesign`
     Package](#simulation-example-on-structural-equation-modeling-sem-using-the-simdesign-package)
-    -   [Simulate Multivariate Data](#simulate-multivariate-data)
-    -   [Workflow for Using `SimDesign`](#workflow-for-using-simdesign)
-        -   [Step 1: Create data frame of design
+      - [Simulate Multivariate Data](#simulate-multivariate-data)
+      - [Workflow for Using `SimDesign`](#workflow-for-using-simdesign)
+          - [Step 1: Create data frame of design
             factors](#step-1-create-data-frame-of-design-factors)
-        -   [Step 2: Define a function for generating
+          - [Step 2: Define a function for generating
             data](#step-2-define-a-function-for-generating-data)
-        -   [Step 3: Define a function for analyzing the simulated
+          - [Step 3: Define a function for analyzing the simulated
             data](#step-3-define-a-function-for-analyzing-the-simulated-data)
-        -   [Step 4: Define a function for evaluating the sample
+          - [Step 4: Define a function for evaluating the sample
             results](#step-4-define-a-function-for-evaluating-the-sample-results)
-        -   [Step 5: Test Run the
+          - [Step 5: Test Run the
             simulation](#step-5-test-run-the-simulation)
-        -   [Step 6: Full simulation](#step-6-full-simulation)
-    -   [Summarize Simulation Results](#summarize-simulation-results)
-        -   [ANOVA](#anova)
-    -   [Exercise](#exercise)
+          - [Step 6: Full simulation](#step-6-full-simulation)
+      - [Summarize Simulation Results](#summarize-simulation-results)
+          - [ANOVA](#anova)
+      - [Exercise](#exercise)
 
 # Simulation Example on Structural Equation Modeling (SEM) Using the `SimDesign` Package
 
@@ -55,76 +55,79 @@ situations like categorical data or multilevel data. Therefore, in this
 note we’ll use the second method.
 
 Let’s do a latent growth model (LGM) similar to the one in the note
-“Simulating Multilevel Data.” Here is the model in a latent growth model
-representation:
-
-![\\begin{bmatrix}
-    y\_{0i} \\\\
-    y\_{1i} \\\\
-    y\_{2i} \\\\
-    y\_{3i}
+“Simulating Multilevel Data.” Here is the model in a latent growth
+model representation:   
+![\\begin{bmatrix}&#10; y\_{0i} \\\\&#10; y\_{1i} \\\\&#10; y\_{2i}
+\\\\&#10; y\_{3i}&#10; \\end{bmatrix} = &#10;
+\\boldsymbol{\\mathbf{\\Lambda }}&#10; \\begin{bmatrix}&#10; \\eta\_{1i}
+\\\\&#10; \\eta\_{2i}&#10; \\end{bmatrix} + &#10; \\begin{bmatrix}&#10;
+e\_{0i} \\\\&#10; e\_{1i} \\\\&#10; e\_{2i} \\\\&#10; e\_{3i}&#10;
+\\end{bmatrix}](https://latex.codecogs.com/png.latex?%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20y_%7B0i%7D%20%5C%5C%0A%20%20%20%20y_%7B1i%7D%20%5C%5C%0A%20%20%20%20y_%7B2i%7D%20%5C%5C%0A%20%20%20%20y_%7B3i%7D%0A%20%20%5Cend%7Bbmatrix%7D%20%3D%20%0A%20%20%5Cboldsymbol%7B%5Cmathbf%7B%5CLambda%20%7D%7D%0A%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%5Ceta_%7B1i%7D%20%5C%5C%0A%20%20%20%20%5Ceta_%7B2i%7D%0A%20%20%5Cend%7Bbmatrix%7D%20%2B%20%0A%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20e_%7B0i%7D%20%5C%5C%0A%20%20%20%20e_%7B1i%7D%20%5C%5C%0A%20%20%20%20e_%7B2i%7D%20%5C%5C%0A%20%20%20%20e_%7B3i%7D%0A%20%20%5Cend%7Bbmatrix%7D
+"\\begin{bmatrix}
+    y_{0i} \\\\
+    y_{1i} \\\\
+    y_{2i} \\\\
+    y_{3i}
   \\end{bmatrix} = 
   \\boldsymbol{\\mathbf{\\Lambda }}
   \\begin{bmatrix}
-    \\eta\_{1i} \\\\
-    \\eta\_{2i}
+    \\eta_{1i} \\\\
+    \\eta_{2i}
   \\end{bmatrix} + 
   \\begin{bmatrix}
-    e\_{0i} \\\\
-    e\_{1i} \\\\
-    e\_{2i} \\\\
-    e\_{3i}
-  \\end{bmatrix}](https://latex.codecogs.com/png.latex?%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20y_%7B0i%7D%20%5C%5C%0A%20%20%20%20y_%7B1i%7D%20%5C%5C%0A%20%20%20%20y_%7B2i%7D%20%5C%5C%0A%20%20%20%20y_%7B3i%7D%0A%20%20%5Cend%7Bbmatrix%7D%20%3D%20%0A%20%20%5Cboldsymbol%7B%5Cmathbf%7B%5CLambda%20%7D%7D%0A%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%5Ceta_%7B1i%7D%20%5C%5C%0A%20%20%20%20%5Ceta_%7B2i%7D%0A%20%20%5Cend%7Bbmatrix%7D%20%2B%20%0A%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20e_%7B0i%7D%20%5C%5C%0A%20%20%20%20e_%7B1i%7D%20%5C%5C%0A%20%20%20%20e_%7B2i%7D%20%5C%5C%0A%20%20%20%20e_%7B3i%7D%0A%20%20%5Cend%7Bbmatrix%7D "\begin{bmatrix}
-    y_{0i} \\
-    y_{1i} \\
-    y_{2i} \\
-    y_{3i}
-  \end{bmatrix} = 
-  \boldsymbol{\mathbf{\Lambda }}
-  \begin{bmatrix}
-    \eta_{1i} \\
-    \eta_{2i}
-  \end{bmatrix} + 
-  \begin{bmatrix}
-    e_{0i} \\
-    e_{1i} \\
-    e_{2i} \\
+    e_{0i} \\\\
+    e_{1i} \\\\
+    e_{2i} \\\\
     e_{3i}
-  \end{bmatrix}")
-
-where
-![y\_{0i}, \\ldots, y\_{3i}](https://latex.codecogs.com/png.latex?y_%7B0i%7D%2C%20%5Cldots%2C%20y_%7B3i%7D "y_{0i}, \ldots, y_{3i}")
-are the outcome values for person
+  \\end{bmatrix}")  
+where ![y\_{0i}, \\ldots,
+y\_{3i}](https://latex.codecogs.com/png.latex?y_%7B0i%7D%2C%20%5Cldots%2C%20y_%7B3i%7D
+"y_{0i}, \\ldots, y_{3i}") are the outcome values for person
 ![i](https://latex.codecogs.com/png.latex?i "i") from time 0 to time 3,
-![\\eta\_{1i}](https://latex.codecogs.com/png.latex?%5Ceta_%7B1i%7D "\eta_{1i}")
-is the specific intercept for person
+![\\eta\_{1i}](https://latex.codecogs.com/png.latex?%5Ceta_%7B1i%7D
+"\\eta_{1i}") is the specific intercept for person
 ![i](https://latex.codecogs.com/png.latex?i "i"),
-![\\eta\_{2i}](https://latex.codecogs.com/png.latex?%5Ceta_%7B2i%7D "\eta_{2i}")
-is the specific slope for person
-![i](https://latex.codecogs.com/png.latex?i "i"), and
-![e\_{0i}, \\ldots, e\_{3i}](https://latex.codecogs.com/png.latex?e_%7B0i%7D%2C%20%5Cldots%2C%20e_%7B3i%7D "e_{0i}, \ldots, e_{3i}")
-are the within-person level error term. The distributional assumptions
-are
+![\\eta\_{2i}](https://latex.codecogs.com/png.latex?%5Ceta_%7B2i%7D
+"\\eta_{2i}") is the specific slope for person
+![i](https://latex.codecogs.com/png.latex?i "i"), and ![e\_{0i},
+\\ldots,
+e\_{3i}](https://latex.codecogs.com/png.latex?e_%7B0i%7D%2C%20%5Cldots%2C%20e_%7B3i%7D
+"e_{0i}, \\ldots, e_{3i}") are the within-person level error term. The
+distributional assumptions are
 
-![
+  
+![&#10; \\begin{aligned}&#10; \\begin{bmatrix}&#10; \\eta\_{1i}
+\\\\&#10; \\eta\_{2i}&#10; \\end{bmatrix} & \\sim &#10;
+\\mathcal{N}\\left(\\begin{bmatrix}&#10; \\alpha\_1 \\\\&#10;
+\\alpha\_2&#10; \\end{bmatrix}, &#10; \\begin{bmatrix}&#10; \\phi\_{11}
+& \\phi\_{21} \\\\&#10; \\phi\_{21} & \\phi\_{22}&#10;
+\\end{bmatrix}\\right) \\\\&#10; \\begin{bmatrix}&#10; e\_{0i} \\\\&#10;
+e\_{1i} \\\\&#10; e\_{2i} \\\\&#10; e\_{3i}&#10; \\end{bmatrix} &
+\\sim&#10; \\mathcal{N}\\left(\\begin{bmatrix}&#10; 0 \\\\&#10; 0
+\\\\&#10; 0 \\\\&#10; 0&#10; \\end{bmatrix}, &#10; \\begin{bmatrix}&#10;
+\\theta\_{11} & 0 & 0 & 0 \\\\&#10; 0 & \\theta\_{22} & 0 & 0
+\\\\&#10; 0 & 0 & \\theta\_{33} & 0 \\\\&#10; 0 & 0 & 0 & \\theta\_{44}
+\\\\&#10; \\end{bmatrix}\\right)&#10;
+\\end{aligned}&#10;](https://latex.codecogs.com/png.latex?%0A%20%20%5Cbegin%7Baligned%7D%0A%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%5Ceta_%7B1i%7D%20%5C%5C%0A%20%20%20%20%5Ceta_%7B2i%7D%0A%20%20%5Cend%7Bbmatrix%7D%20%26%20%5Csim%20%0A%20%20%5Cmathcal%7BN%7D%5Cleft%28%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Calpha_1%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Calpha_2%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Bbmatrix%7D%2C%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cphi_%7B11%7D%20%26%20%5Cphi_%7B21%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cphi_%7B21%7D%20%26%20%5Cphi_%7B22%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Bbmatrix%7D%5Cright%29%20%5C%5C%0A%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20e_%7B0i%7D%20%5C%5C%0A%20%20%20%20e_%7B1i%7D%20%5C%5C%0A%20%20%20%20e_%7B2i%7D%20%5C%5C%0A%20%20%20%20e_%7B3i%7D%0A%20%20%5Cend%7Bbmatrix%7D%20%26%20%5Csim%0A%20%20%5Cmathcal%7BN%7D%5Cleft%28%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Bbmatrix%7D%2C%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Ctheta_%7B11%7D%20%26%200%20%26%200%20%26%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%26%20%5Ctheta_%7B22%7D%20%26%200%20%26%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%26%200%20%26%20%5Ctheta_%7B33%7D%20%26%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%26%200%20%26%200%20%26%20%5Ctheta_%7B44%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Bbmatrix%7D%5Cright%29%0A%20%20%5Cend%7Baligned%7D%0A
+"
   \\begin{aligned}
   \\begin{bmatrix}
-    \\eta\_{1i} \\\\
-    \\eta\_{2i}
+    \\eta_{1i} \\\\
+    \\eta_{2i}
   \\end{bmatrix} & \\sim 
   \\mathcal{N}\\left(\\begin{bmatrix}
-                \\alpha\_1 \\\\
-                \\alpha\_2
+                \\alpha_1 \\\\
+                \\alpha_2
               \\end{bmatrix}, 
               \\begin{bmatrix}
-                \\phi\_{11} & \\phi\_{21} \\\\
-                \\phi\_{21} & \\phi\_{22}
+                \\phi_{11} & \\phi_{21} \\\\
+                \\phi_{21} & \\phi_{22}
               \\end{bmatrix}\\right) \\\\
   \\begin{bmatrix}
-    e\_{0i} \\\\
-    e\_{1i} \\\\
-    e\_{2i} \\\\
-    e\_{3i}
+    e_{0i} \\\\
+    e_{1i} \\\\
+    e_{2i} \\\\
+    e_{3i}
   \\end{bmatrix} & \\sim
   \\mathcal{N}\\left(\\begin{bmatrix}
                 0 \\\\
@@ -133,46 +136,13 @@ are
                 0
               \\end{bmatrix}, 
               \\begin{bmatrix}
-                \\theta\_{11} & 0 & 0 & 0 \\\\
-                0 & \\theta\_{22} & 0 & 0 \\\\
-                0 & 0 & \\theta\_{33} & 0 \\\\
-                0 & 0 & 0 & \\theta\_{44} \\\\
+                \\theta_{11} & 0 & 0 & 0 \\\\
+                0 & \\theta_{22} & 0 & 0 \\\\
+                0 & 0 & \\theta_{33} & 0 \\\\
+                0 & 0 & 0 & \\theta_{44} \\\\
               \\end{bmatrix}\\right)
   \\end{aligned}
-](https://latex.codecogs.com/png.latex?%0A%20%20%5Cbegin%7Baligned%7D%0A%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%5Ceta_%7B1i%7D%20%5C%5C%0A%20%20%20%20%5Ceta_%7B2i%7D%0A%20%20%5Cend%7Bbmatrix%7D%20%26%20%5Csim%20%0A%20%20%5Cmathcal%7BN%7D%5Cleft%28%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Calpha_1%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Calpha_2%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Bbmatrix%7D%2C%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cphi_%7B11%7D%20%26%20%5Cphi_%7B21%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cphi_%7B21%7D%20%26%20%5Cphi_%7B22%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Bbmatrix%7D%5Cright%29%20%5C%5C%0A%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20e_%7B0i%7D%20%5C%5C%0A%20%20%20%20e_%7B1i%7D%20%5C%5C%0A%20%20%20%20e_%7B2i%7D%20%5C%5C%0A%20%20%20%20e_%7B3i%7D%0A%20%20%5Cend%7Bbmatrix%7D%20%26%20%5Csim%0A%20%20%5Cmathcal%7BN%7D%5Cleft%28%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Bbmatrix%7D%2C%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cbegin%7Bbmatrix%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Ctheta_%7B11%7D%20%26%200%20%26%200%20%26%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%26%20%5Ctheta_%7B22%7D%20%26%200%20%26%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%26%200%20%26%20%5Ctheta_%7B33%7D%20%26%200%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200%20%26%200%20%26%200%20%26%20%5Ctheta_%7B44%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Bbmatrix%7D%5Cright%29%0A%20%20%5Cend%7Baligned%7D%0A "
-  \begin{aligned}
-  \begin{bmatrix}
-    \eta_{1i} \\
-    \eta_{2i}
-  \end{bmatrix} & \sim 
-  \mathcal{N}\left(\begin{bmatrix}
-                \alpha_1 \\
-                \alpha_2
-              \end{bmatrix}, 
-              \begin{bmatrix}
-                \phi_{11} & \phi_{21} \\
-                \phi_{21} & \phi_{22}
-              \end{bmatrix}\right) \\
-  \begin{bmatrix}
-    e_{0i} \\
-    e_{1i} \\
-    e_{2i} \\
-    e_{3i}
-  \end{bmatrix} & \sim
-  \mathcal{N}\left(\begin{bmatrix}
-                0 \\
-                0 \\
-                0 \\
-                0
-              \end{bmatrix}, 
-              \begin{bmatrix}
-                \theta_{11} & 0 & 0 & 0 \\
-                0 & \theta_{22} & 0 & 0 \\
-                0 & 0 & \theta_{33} & 0 \\
-                0 & 0 & 0 & \theta_{44} \\
-              \end{bmatrix}\right)
-  \end{aligned}
-")
+")  
 
 A path diagram is shown below:
 
@@ -209,17 +179,18 @@ manipulated independent variables), namely sample size, variance of the
 random slope in the data generating model, and the mean of the slopes.
 The design factors are summarized here:
 
--   Sample size (*N*): 50, 100, 200
--   Variance of slopes
-    (![\\phi\_{22}](https://latex.codecogs.com/png.latex?%5Cphi_%7B22%7D "\phi_{22}")):
-    0.1, 0.5 (i.e., 1/10 and 1/2 of the intercept variance)
--   Mean of slopes
-    (![\\alpha\_2](https://latex.codecogs.com/png.latex?%5Calpha_2 "\alpha_2")):
-    1, 0.5
+  - Sample size (*N*): 50, 100, 200
+  - Variance of slopes
+    (![\\phi\_{22}](https://latex.codecogs.com/png.latex?%5Cphi_%7B22%7D
+    "\\phi_{22}")): 0.1, 0.5 (i.e., 1/10 and 1/2 of the intercept
+    variance)
+  - Mean of slopes
+    (![\\alpha\_2](https://latex.codecogs.com/png.latex?%5Calpha_2
+    "\\alpha_2")): 1, 0.5
 
 Therefore, it’s a 3
-![\\times](https://latex.codecogs.com/png.latex?%5Ctimes "\times") 2
-![\\times](https://latex.codecogs.com/png.latex?%5Ctimes "\times") 2
+![\\times](https://latex.codecogs.com/png.latex?%5Ctimes "\\times") 2
+![\\times](https://latex.codecogs.com/png.latex?%5Ctimes "\\times") 2
 factorial design.
 
 ``` r
@@ -296,57 +267,57 @@ of `designfactor`):
 (test_data <- gen_lgm_data(designfactor[1, ], fixed_objects = fixed_obj))
 ```
 
-    >#             y1          y2          y3          y4
-    ># 1   1.02085395  0.25317179  0.25518770 -0.99233088
-    ># 2   1.89284766  2.83137192  0.32105189  1.46260379
-    ># 3   2.89895991  1.61000766  1.19098210  2.54345535
-    ># 4   1.08955919  0.53686302 -1.89316428  0.60192746
-    ># 5   3.41056732  2.61105205  2.15551731  1.27354473
-    ># 6   0.69710759  1.11064750  1.62660893  0.30071652
-    ># 7  -0.65504036 -0.08129605 -0.26982211 -1.64668932
-    ># 8   1.47415998  2.71133884  1.10017583  1.85395755
-    ># 9  -1.03771294 -0.39039463 -1.74806153 -0.41162786
-    ># 10  3.21688828  2.24349132  1.24436817  1.53491421
-    ># 11  1.02830590  1.33112043  0.82060089 -0.61099016
-    ># 12  1.73217879  2.21086975  2.93886228  3.37123807
-    ># 13 -2.47293546 -1.29352565 -2.52995369 -3.34050038
-    ># 14 -0.07006658 -1.26080492 -0.17386701 -0.92203915
-    ># 15  1.33944106 -0.05360172 -0.10040466 -0.15063024
-    ># 16 -1.74589879 -3.58490435 -4.63046357 -4.53023923
-    ># 17  0.13364108  0.95826870  1.02019318  0.83479066
-    ># 18  0.21226626  0.31850647  0.06917167  0.74982893
-    ># 19 -0.82601414  0.27695475 -1.03002559 -0.05278769
-    ># 20  1.79759100  0.78157521  1.13403799  0.82694516
-    ># 21  2.10270915  2.47258432  3.31672092  3.89466608
-    ># 22  1.36360492  1.83753338  0.91649093  0.95787228
-    ># 23  2.15072846  3.01981814  2.53865330  3.49527049
-    ># 24  2.69864947  1.26393168  4.17027740  3.20636630
-    ># 25 -1.21852974 -0.98763119  0.19478272 -0.86239297
-    ># 26  2.70055897  2.56285041  2.84330936  2.03657102
-    ># 27 -1.84777617 -0.90182601 -0.67979262 -1.47973856
-    ># 28  1.72232512  1.10834011  2.04891150  2.99016645
-    ># 29  3.30396519  2.71838502  3.03921184  3.48041708
-    ># 30  2.33564745  0.75129266  1.94399775  2.16866640
-    ># 31  0.78112950  0.77972942  0.48803668  0.73371477
-    ># 32  0.90337759  0.44651317 -0.76232667 -1.07914960
-    ># 33  1.99144790  3.05123271  3.16322433  2.87153777
-    ># 34  2.64348435  3.51502417  2.73394955  2.72069489
-    ># 35  2.57433668  4.21936249  3.96752711  5.25205918
-    ># 36  1.15846048  1.09284885  0.35669414 -0.63683317
-    ># 37  0.21195613 -0.56247067 -0.60557685 -0.41794001
-    ># 38 -0.47835516  2.55773194  2.15431424  1.37550625
-    ># 39  1.49760336 -0.27241669  1.34411186  0.46761026
-    ># 40  0.68625578  1.10909360  0.58891619 -1.21119175
-    ># 41  0.86049016  1.12454031  1.00333882  0.19192206
-    ># 42  1.57842823  0.61469372  0.09240562  0.88343175
-    ># 43 -1.54469230 -3.36765893 -2.17811619 -2.62249544
-    ># 44  1.18420598  0.81462572  0.79419451  0.80703213
-    ># 45 -0.18503989  0.18668266  0.93661057 -0.89114339
-    ># 46  2.06227620  4.40560381  4.31356764  2.92411409
-    ># 47  1.50746330  0.99880863 -0.32114824  0.31192297
-    ># 48 -0.67301347 -1.01544458 -1.31757121 -1.55261032
-    ># 49  2.16349773  3.21722851  0.81175889  2.68205766
-    ># 50 -0.97124945 -1.93916405 -2.44339945 -2.86094596
+    >#            y1          y2         y3          y4
+    ># 1   0.8347251  0.38217213 -1.4155241 -0.41825775
+    ># 2  -0.1424525 -2.38517074 -3.7443364 -3.40481824
+    ># 3   0.3797961  1.20308378 -1.4583647 -0.97223312
+    ># 4   0.5916468  1.29397939 -0.5166293  2.56479120
+    ># 5   2.0020448  1.55798267  1.9176765  2.23577907
+    ># 6   0.5332657  1.60585857  1.8757878  1.75464607
+    ># 7   0.7454691  1.38998092  0.7432844  1.32394529
+    ># 8   0.8061445  1.06064797  2.2033998  0.73335182
+    ># 9  -0.4369852 -2.19125016 -0.8819522 -0.75603159
+    ># 10  1.4510327  1.06650862  0.9763176 -0.16133342
+    ># 11  1.2962571  1.50806920  0.3051535  0.03997832
+    ># 12  3.2295427  3.33753630  2.4134247  3.38483689
+    ># 13  2.1213320  1.80285328  3.4001704  3.35713400
+    ># 14  2.0206412  1.07579671  1.6443448  1.59151284
+    ># 15  2.0971434  1.77102291  2.1268183  1.15008252
+    ># 16  1.2634529  0.82169633  1.6064522  1.42548834
+    ># 17  0.9595218  2.27576483  2.8485264  1.98048267
+    ># 18  2.3072508  2.96029323  1.3214246  1.40699840
+    ># 19  0.9051683  0.84363518  0.3818444 -0.18729063
+    ># 20  3.6980739  2.96498891  2.5519515  5.68663702
+    ># 21  0.8015359  2.27374453  3.2517967  2.58267941
+    ># 22  0.9734395  0.01437083  0.2802065 -1.11441149
+    ># 23  0.6424167  1.86418297  0.1401472 -0.08316836
+    ># 24  2.2127877  1.23128527  2.8367679  1.76033822
+    ># 25 -1.4450568 -0.36299300 -0.3771272 -0.29563176
+    ># 26  1.2651490  1.54138803  2.3497551  1.91271419
+    ># 27  2.3547232  1.88436299  2.6966139  3.18166597
+    ># 28  0.6100655  1.53344261  1.6709941  3.05642719
+    ># 29  1.5458041 -1.20180279 -0.6420674 -1.00322995
+    ># 30  2.8078939  1.65552217  3.2377611  4.10374016
+    ># 31 -1.7920763  0.03233447  0.7198937  0.11673607
+    ># 32  3.1931196  2.31931558  3.2943432  3.45514100
+    ># 33  0.7427201  2.90433796  1.3814859  1.24387292
+    ># 34  0.2463625  1.79780005  4.1162760  3.04780754
+    ># 35 -0.4028881 -2.93738693 -1.3082866 -2.03025938
+    ># 36  2.3116239  1.37546912  4.9092816  4.60624001
+    ># 37  0.1093947 -1.65197220 -1.8409591 -1.27570642
+    ># 38  0.4622808 -0.33853207 -0.7094562 -1.74262134
+    ># 39  1.5742422  2.89724522  3.4178988  2.88181432
+    ># 40  0.7211275  2.16263475  1.7268297  3.24536779
+    ># 41 -1.1731955 -1.29762878 -0.1765694 -1.07734763
+    ># 42  0.4202583  2.38155831  3.0002366  2.51968933
+    ># 43  1.7608830  3.54144445  2.9000664  3.23403951
+    ># 44  0.5401468  1.52338036  0.5101402  0.95034944
+    ># 45 -0.9035784 -0.09535578 -0.1897216 -0.03142138
+    ># 46  2.8860946  3.21722105  2.1093320  4.58258239
+    ># 47  1.2463991 -0.31083396  1.2084012  0.50516282
+    ># 48  2.2858351  2.95323388  1.9999386  2.49125960
+    ># 49  1.2110286  0.85491597  3.3022137  1.29476807
+    ># 50 -0.9917841 -2.13292363 -2.3112845 -1.32547799
 
 If you want to check whether the simulated data is correct, generate
 with a large sample size, and check the means and covariances:
@@ -358,17 +329,17 @@ colMeans(large_test_df)
 ```
 
     >#       y1       y2       y3       y4 
-    ># 1.499431 2.000718 2.499398 3.001322
+    ># 1.497476 1.994736 2.492501 2.990415
 
 ``` r
 cov(large_test_df)
 ```
 
     >#          y1       y2       y3       y4
-    ># y1 1.689034 1.343337 1.493369 1.642095
-    ># y2 1.343337 2.104909 1.854246 2.105730
-    ># y3 1.493369 1.854246 2.700796 2.553730
-    ># y4 1.642095 2.105730 2.553730 3.505012
+    ># y1 1.707542 1.352779 1.502971 1.650655
+    ># y2 1.352779 2.103302 1.846582 2.096394
+    ># y3 1.502971 1.846582 2.694122 2.543183
+    ># y4 1.650655 2.096394 2.543183 3.490395
 
 #### Note: Other methods for generating SEM data
 
@@ -384,22 +355,22 @@ lavaan::simulateData(growth_model) %>%
   head() # shows only the first six cases
 ```
 
-    >#           y1        y2         y3        y4
-    ># 1  3.1312882 4.1441789  4.9975051  5.809730
-    ># 2  1.3649874 1.3663932  3.7170062  4.359383
-    ># 3  3.3882473 3.3575449  2.0219841  3.405381
-    ># 4  2.0402375 1.7758214  0.7636667  1.643502
-    ># 5  0.2931383 1.3966473  0.4917014  1.403948
-    ># 6 -0.1855835 0.4633854 -1.2052212 -1.178754
+    >#            y1       y2        y3        y4
+    ># 1 -0.70726387 1.092568 1.6066896 1.6273346
+    ># 2  2.79605629 3.805439 3.8631354 4.6831369
+    ># 3  0.02203814 2.441585 3.9447603 4.7847719
+    ># 4  0.78487534 2.895133 2.5946433 3.9875209
+    ># 5  0.81832362 1.287995 0.9569316 0.5092388
+    ># 6  3.77554598 3.462055 2.8186255 5.0123033
 
 Personally, however, I prefer directly simulating data in R because
 
--   it forces you to specify everything in the model in the way you
+  - it forces you to specify everything in the model in the way you
     want. Especially in Mplus there are a lot of hidden default settings
     that may mess up with your simulation;
--   it makes the process of generating data more transparent;
--   it helps you learn the math behind the model;
--   it is more flexible as you can specify any distributional
+  - it makes the process of generating data more transparent;
+  - it helps you learn the math behind the model;
+  - it is more flexible as you can specify any distributional
     assumptions or models not supported by the SEM packages.
 
 ### Step 3: Define a function for analyzing the simulated data
@@ -433,14 +404,35 @@ analyze_lgm <- function(condition, dat, fixed_objects = NULL) {
 }
 ```
 
-Test the function:
+Test the analysis function:
 
 ``` r
 analyze_lgm(designfactor[1, ], dat = test_data)
 ```
 
-    >#      m1_est       m1_se      m2_est       m2_se 
-    ># -0.11767537  0.05303894 -0.12137165  0.04994210
+    >#     m1_est      m1_se     m2_est      m2_se 
+    ># 0.07560676 0.06462994 0.08168169 0.05821217
+
+Behind the scene, `SimDesign` saves the analysis results `ret` to a
+matrix row by row per simulated data set. As an illustration, below
+shows how the result matrix looks like.
+
+``` r
+set.seed(123)
+rep <- 3
+test_ret <- NULL
+for (i in 1:rep) {
+  test_data <- gen_lgm_data(designfactor[1, ], fixed_objects = fixed_obj)
+  test_ret <- rbind(test_ret, 
+                    analyze_lgm(designfactor[1, ], dat = test_data))
+}
+test_ret
+```
+
+    >#            m1_est      m1_se       m2_est      m2_se
+    ># [1,] -0.004638175 0.05925965 -0.002177909 0.05417852
+    ># [2,] -0.022546013 0.06004321 -0.010528237 0.05512071
+    ># [3,] -0.039045161 0.06807877 -0.026733546 0.05703484
 
 ### Step 4: Define a function for evaluating the sample results
 
@@ -465,6 +457,17 @@ evaluate_lgm <- function(condition, results, fixed_objects = NULL) {
 }
 ```
 
+Test the evaluation function:
+
+``` r
+evaluate_lgm(designfactor[1, ], test_ret)
+```
+
+    >#     bias.m1_est     bias.m2_est std_bias.m1_est std_bias.m2_est     rmse.m1_est 
+    >#     -0.02207645     -0.01314656     -1.28289559     -1.05295041      0.02616843 
+    >#     rmse.m2_est  rse_bias.m1_se  rse_bias.m2_se 
+    >#      0.01663600      2.62967580      3.44074265
+
 ### Step 5: Test Run the simulation
 
 Trial run with 2 replications
@@ -479,32 +482,32 @@ sim_trial <- runSimulation(designfactor,
 ```
 
     ># 
-    ># Design row: 1/12;   Started: Sun Jun  6 16:10:15 2021;   Total elapsed time: 0.00s 
+    ># Design row: 1/12;   Started: Mon Jun 14 13:58:38 2021;   Total elapsed time: 0.00s 
     ># 
-    ># Design row: 2/12;   Started: Sun Jun  6 16:10:15 2021;   Total elapsed time: 0.22s 
+    ># Design row: 2/12;   Started: Mon Jun 14 13:58:38 2021;   Total elapsed time: 0.16s 
     ># 
-    ># Design row: 3/12;   Started: Sun Jun  6 16:10:15 2021;   Total elapsed time: 0.39s 
+    ># Design row: 3/12;   Started: Mon Jun 14 13:58:38 2021;   Total elapsed time: 0.28s 
     ># 
-    ># Design row: 4/12;   Started: Sun Jun  6 16:10:16 2021;   Total elapsed time: 0.59s 
+    ># Design row: 4/12;   Started: Mon Jun 14 13:58:39 2021;   Total elapsed time: 0.42s 
     ># 
-    ># Design row: 5/12;   Started: Sun Jun  6 16:10:16 2021;   Total elapsed time: 0.78s 
+    ># Design row: 5/12;   Started: Mon Jun 14 13:58:39 2021;   Total elapsed time: 0.54s 
     ># 
-    ># Design row: 6/12;   Started: Sun Jun  6 16:10:16 2021;   Total elapsed time: 0.97s 
+    ># Design row: 6/12;   Started: Mon Jun 14 13:58:39 2021;   Total elapsed time: 0.67s 
     ># 
-    ># Design row: 7/12;   Started: Sun Jun  6 16:10:16 2021;   Total elapsed time: 1.17s 
+    ># Design row: 7/12;   Started: Mon Jun 14 13:58:39 2021;   Total elapsed time: 0.80s 
     ># 
-    ># Design row: 8/12;   Started: Sun Jun  6 16:10:16 2021;   Total elapsed time: 1.34s 
+    ># Design row: 8/12;   Started: Mon Jun 14 13:58:39 2021;   Total elapsed time: 0.92s 
     ># 
-    ># Design row: 9/12;   Started: Sun Jun  6 16:10:17 2021;   Total elapsed time: 1.56s 
+    ># Design row: 9/12;   Started: Mon Jun 14 13:58:39 2021;   Total elapsed time: 1.05s 
     ># 
-    ># Design row: 10/12;   Started: Sun Jun  6 16:10:17 2021;   Total elapsed time: 1.74s 
+    ># Design row: 10/12;   Started: Mon Jun 14 13:58:39 2021;   Total elapsed time: 1.17s 
     ># 
-    ># Design row: 11/12;   Started: Sun Jun  6 16:10:17 2021;   Total elapsed time: 1.93s 
+    ># Design row: 11/12;   Started: Mon Jun 14 13:58:39 2021;   Total elapsed time: 1.30s 
     ># 
-    ># Design row: 12/12;   Started: Sun Jun  6 16:10:17 2021;   Total elapsed time: 2.12s
+    ># Design row: 12/12;   Started: Mon Jun 14 13:58:40 2021;   Total elapsed time: 1.43s
 
     ># 
-    ># Simulation complete. Total execution time: 2.30s
+    ># Simulation complete. Total execution time: 1.57s
 
 Hopefully it runs fine. If there’s any error, we have to go back and
 check each component. The errors from `SimDesign` provides some hints.
@@ -517,8 +520,8 @@ set `ncores` so that I use two cores.
 
 An important thing to note is that when `parallel = TRUE`, one needs to
 also export the packages by specifying all the packages needed for the
-simulation via the `packages` argument. Here we will set
-`packages = c("mnormt", "lavaan")`.
+simulation via the `packages` argument. Here we will set `packages =
+c("mnormt", "lavaan")`.
 
 ``` r
 sim_result <- runSimulation(designfactor, 
@@ -529,7 +532,8 @@ sim_result <- runSimulation(designfactor,
                             fixed_objects = fixed_obj,
                             parallel = TRUE,
                             ncores = min(parallel::detectCores() - 1, 2),
-                            packages = c("mnormt", "lavaan"))
+                            packages = c("mnormt", "lavaan"), 
+                            save_results = TRUE)
 ```
 
 ## Summarize Simulation Results
@@ -685,26 +689,26 @@ aov_etasq <- function(id, dv, data, between, within) {
 }
 aov_etasq("con_id", dv = "bias", data = sim_result_long, 
           between = c("N", "phi22", "alpha2"), within = "model") %>%
-  knitr::kable(digits = 3L)
+  knitr::kable(digits = 5L)
 ```
 
-|                      |  Df | Sum Sq | Mean Sq | Eta Sq |
-|:---------------------|----:|-------:|--------:|-------:|
-| N                    |   2 |      0 |       0 |  0.073 |
-| phi22                |   1 |      0 |       0 |  0.122 |
-| alpha2               |   1 |      0 |       0 |  0.001 |
-| N:phi22              |   2 |      0 |       0 |  0.132 |
-| N:alpha2             |   2 |      0 |       0 |  0.366 |
-| phi22:alpha2         |   1 |      0 |       0 |  0.013 |
-| N:phi22:alpha2       |   2 |      0 |       0 |  0.280 |
-| model                |   1 |      0 |       0 |  0.001 |
-| N:model              |   2 |      0 |       0 |  0.003 |
-| phi22:model          |   1 |      0 |       0 |  0.000 |
-| alpha2:model         |   1 |      0 |       0 |  0.000 |
-| N:phi22:model        |   2 |      0 |       0 |  0.001 |
-| N:alpha2:model       |   2 |      0 |       0 |  0.004 |
-| phi22:alpha2:model   |   1 |      0 |       0 |  0.001 |
-| N:phi22:alpha2:model |   2 |      0 |       0 |  0.004 |
+|                      | Df | Sum Sq | Mean Sq |  Eta Sq |
+| :------------------- | -: | -----: | ------: | ------: |
+| N                    |  2 |  1e-05 |   1e-05 | 0.07284 |
+| phi22                |  1 |  2e-05 |   2e-05 | 0.12221 |
+| alpha2               |  1 |  0e+00 |   0e+00 | 0.00141 |
+| N:phi22              |  2 |  2e-05 |   1e-05 | 0.13182 |
+| N:alpha2             |  2 |  7e-05 |   3e-05 | 0.36616 |
+| phi22:alpha2         |  1 |  0e+00 |   0e+00 | 0.01255 |
+| N:phi22:alpha2       |  2 |  5e-05 |   3e-05 | 0.27960 |
+| model                |  1 |  0e+00 |   0e+00 | 0.00050 |
+| N:model              |  2 |  0e+00 |   0e+00 | 0.00255 |
+| phi22:model          |  1 |  0e+00 |   0e+00 | 0.00009 |
+| alpha2:model         |  1 |  0e+00 |   0e+00 | 0.00014 |
+| N:phi22:model        |  2 |  0e+00 |   0e+00 | 0.00068 |
+| N:alpha2:model       |  2 |  0e+00 |   0e+00 | 0.00442 |
+| phi22:alpha2:model   |  1 |  0e+00 |   0e+00 | 0.00068 |
+| N:phi22:alpha2:model |  2 |  0e+00 |   0e+00 | 0.00434 |
 
 With relatively small number of conditions, one can present the results
 in a table (and it’s handy in R):
@@ -721,39 +725,39 @@ sim_result_long %>%
   knitr::kable(digits = 3L)
 ```
 
-| ![\\alpha\_{2}](https://latex.codecogs.com/png.latex?%5Calpha_%7B2%7D "\alpha_{2}") | ![\\phi\_{22}](https://latex.codecogs.com/png.latex?%5Cphi_%7B22%7D "\phi_{22}") |   N | model | Standardized Bias | Relative SE Error |
-|------------------------------------------------------------------------------------:|---------------------------------------------------------------------------------:|----:|:------|------------------:|------------------:|
-|                                                                                 0.0 |                                                                              0.1 |  50 | m1    |             0.019 |            -0.033 |
-|                                                                                 0.0 |                                                                              0.1 |  50 | m2    |             0.023 |            -0.154 |
-|                                                                                 0.0 |                                                                              0.1 | 100 | m1    |             0.002 |            -0.011 |
-|                                                                                 0.0 |                                                                              0.1 | 100 | m2    |             0.006 |            -0.128 |
-|                                                                                 0.0 |                                                                              0.1 | 200 | m1    |             0.041 |             0.002 |
-|                                                                                 0.0 |                                                                              0.1 | 200 | m2    |             0.035 |            -0.125 |
-|                                                                                 0.0 |                                                                              0.5 |  50 | m1    |             0.005 |             0.028 |
-|                                                                                 0.0 |                                                                              0.5 |  50 | m2    |             0.023 |            -0.215 |
-|                                                                                 0.0 |                                                                              0.5 | 100 | m1    |            -0.021 |            -0.052 |
-|                                                                                 0.0 |                                                                              0.5 | 100 | m2    |            -0.027 |            -0.289 |
-|                                                                                 0.0 |                                                                              0.5 | 200 | m1    |            -0.010 |             0.000 |
-|                                                                                 0.0 |                                                                              0.5 | 200 | m2    |            -0.016 |            -0.258 |
-|                                                                                 0.5 |                                                                              0.1 |  50 | m1    |             0.022 |            -0.039 |
-|                                                                                 0.5 |                                                                              0.1 |  50 | m2    |             0.028 |            -0.151 |
-|                                                                                 0.5 |                                                                              0.1 | 100 | m1    |             0.083 |             0.019 |
-|                                                                                 0.5 |                                                                              0.1 | 100 | m2    |             0.088 |            -0.110 |
-|                                                                                 0.5 |                                                                              0.1 | 200 | m1    |            -0.044 |            -0.037 |
-|                                                                                 0.5 |                                                                              0.1 | 200 | m2    |            -0.039 |            -0.166 |
-|                                                                                 0.5 |                                                                              0.5 |  50 | m1    |            -0.062 |            -0.065 |
-|                                                                                 0.5 |                                                                              0.5 |  50 | m2    |            -0.066 |            -0.307 |
-|                                                                                 0.5 |                                                                              0.5 | 100 | m1    |             0.026 |            -0.038 |
-|                                                                                 0.5 |                                                                              0.5 | 100 | m2    |             0.033 |            -0.270 |
-|                                                                                 0.5 |                                                                              0.5 | 200 | m1    |             0.028 |            -0.070 |
-|                                                                                 0.5 |                                                                              0.5 | 200 | m2    |             0.021 |            -0.297 |
+| ![\\alpha\_{2}](https://latex.codecogs.com/png.latex?%5Calpha_%7B2%7D "\\alpha_{2}") | ![\\phi\_{22}](https://latex.codecogs.com/png.latex?%5Cphi_%7B22%7D "\\phi_{22}") |   N | model | Standardized Bias | Relative SE Error |
+| -----------------------------------------------------------------------------------: | --------------------------------------------------------------------------------: | --: | :---- | ----------------: | ----------------: |
+|                                                                                  0.0 |                                                                               0.1 |  50 | m1    |             0.019 |           \-0.033 |
+|                                                                                  0.0 |                                                                               0.1 |  50 | m2    |             0.023 |           \-0.154 |
+|                                                                                  0.0 |                                                                               0.1 | 100 | m1    |             0.002 |           \-0.011 |
+|                                                                                  0.0 |                                                                               0.1 | 100 | m2    |             0.006 |           \-0.128 |
+|                                                                                  0.0 |                                                                               0.1 | 200 | m1    |             0.041 |             0.002 |
+|                                                                                  0.0 |                                                                               0.1 | 200 | m2    |             0.035 |           \-0.125 |
+|                                                                                  0.0 |                                                                               0.5 |  50 | m1    |             0.005 |             0.028 |
+|                                                                                  0.0 |                                                                               0.5 |  50 | m2    |             0.023 |           \-0.215 |
+|                                                                                  0.0 |                                                                               0.5 | 100 | m1    |           \-0.021 |           \-0.052 |
+|                                                                                  0.0 |                                                                               0.5 | 100 | m2    |           \-0.027 |           \-0.289 |
+|                                                                                  0.0 |                                                                               0.5 | 200 | m1    |           \-0.010 |             0.000 |
+|                                                                                  0.0 |                                                                               0.5 | 200 | m2    |           \-0.016 |           \-0.258 |
+|                                                                                  0.5 |                                                                               0.1 |  50 | m1    |             0.022 |           \-0.039 |
+|                                                                                  0.5 |                                                                               0.1 |  50 | m2    |             0.028 |           \-0.151 |
+|                                                                                  0.5 |                                                                               0.1 | 100 | m1    |             0.083 |             0.019 |
+|                                                                                  0.5 |                                                                               0.1 | 100 | m2    |             0.088 |           \-0.110 |
+|                                                                                  0.5 |                                                                               0.1 | 200 | m1    |           \-0.044 |           \-0.037 |
+|                                                                                  0.5 |                                                                               0.1 | 200 | m2    |           \-0.039 |           \-0.166 |
+|                                                                                  0.5 |                                                                               0.5 |  50 | m1    |           \-0.062 |           \-0.065 |
+|                                                                                  0.5 |                                                                               0.5 |  50 | m2    |           \-0.066 |           \-0.307 |
+|                                                                                  0.5 |                                                                               0.5 | 100 | m1    |             0.026 |           \-0.038 |
+|                                                                                  0.5 |                                                                               0.5 | 100 | m2    |             0.033 |           \-0.270 |
+|                                                                                  0.5 |                                                                               0.5 | 200 | m1    |             0.028 |           \-0.070 |
+|                                                                                  0.5 |                                                                               0.5 | 200 | m2    |             0.021 |           \-0.297 |
 
 It is, however, recommended you try to plot the results, both for
 exploratory purpose and for better presentation of the results.
 
 ## Exercise
 
-1.  From the simulation results, evaluate the relative efficiency of the
-    estimated average slope (i.e.,
-    ![\\alpha\_2](https://latex.codecogs.com/png.latex?%5Calpha_2 "\alpha_2"))
-    under model 2 relative to that under model 1.
+1.  From the simulation results, evaluate the relative efficiency
+    (`rse_bias`) of the estimated average slope (i.e.,
+    ![\\alpha\_2](https://latex.codecogs.com/png.latex?%5Calpha_2
+    "\\alpha_2")) under model 2 relative to that under model 1.
