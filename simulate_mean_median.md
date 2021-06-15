@@ -1,7 +1,7 @@
 Simulating Means and Medians
 ================
-Mark Lai
-April 26, 2019, last updated on June 06, 2021
+Mark Lai, Yichi Zhang
+April 26, 2019, last updated on June 14, 2021
 
 -   [Simulating Means and Medians](#simulating-means-and-medians)
     -   [Central Limit Theorem (CLT)](#central-limit-theorem-clt)
@@ -39,8 +39,7 @@ the sample mean, then
 
 Let’s imagine that a researcher is interested in studying the house size
 in the Orlando, Florida, measured in 1,000 sq ft. Hypothetically, the
-researcher would like to assume assume that the population house sizes
-follow a
+researcher would like to assume that the population house sizes follow a
 ![\\chi^2](https://latex.codecogs.com/png.latex?%5Cchi%5E2 "\chi^2")
 distribution with four degrees of freedom, and would like to see how
 random samples of different houses would behave. If we use
@@ -51,14 +50,15 @@ variable for house sizes, the population can be described as
 
 ``` r
 ggplot(tibble(x = c(0, 20)), aes(x = x)) + 
-  stat_function(fun = dchisq, args = list(df = 5), bw = "SJ") + 
+  stat_function(fun = dchisq, args = list(df = 4), bw = "SJ") + 
   labs(y = "density")
 ```
 
     ># Warning: Ignoring unknown parameters: bw
 
-![](simulate_mean_median_files/figure-gfm/chisq4-1.png)<!-- --> As can
-be seen, the typical house size is around 2,000 to 5,000 sq ft.
+![](simulate_mean_median_files/figure-gfm/chisq4-1.png)<!-- -->
+
+ As can be seen, the typical house size is around 2,000 to 5,000 sq ft.
 
 It is known that for a
 ![\\chi^2(4)](https://latex.codecogs.com/png.latex?%5Cchi%5E2%284%29 "\chi^2(4)")
