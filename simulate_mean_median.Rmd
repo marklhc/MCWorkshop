@@ -1,6 +1,6 @@
 ---
 title: "Simulating Means and Medians"
-author: "Mark Lai"
+author: "Mark Lai, Yichi Zhang"
 date: "April 26, 2019, last updated on `r format(Sys.time(), '%B %d, %Y')`"
 output: 
   github_document: 
@@ -34,14 +34,15 @@ $$\bar X \sim N\left(\mu, \frac{\sigma^2}{N}\right)$$
 
 ### Examining CLT with Simulation
 
-Let's imagine that a researcher is interested in studying the house size in the Orlando, Florida, measured in 1,000 sq ft. Hypothetically, the researcher would like to assume assume that the population house sizes follow a $\chi^2$ distribution with four degrees of freedom, and would like to see how random samples of different houses would behave. If we use $X$ to represent the random variable for house sizes, the population can be described as
+Let's imagine that a researcher is interested in studying the house size in the Orlando, Florida, measured in 1,000 sq ft. Hypothetically, the researcher would like to assume that the population house sizes follow a $\chi^2$ distribution with four degrees of freedom, and would like to see how random samples of different houses would behave. If we use $X$ to represent the random variable for house sizes, the population can be described as
 $$X \sim \chi^2(4)$$
 ```{r chisq4}
 ggplot(tibble(x = c(0, 20)), aes(x = x)) + 
-  stat_function(fun = dchisq, args = list(df = 5), bw = "SJ") + 
+  stat_function(fun = dchisq, args = list(df = 4), bw = "SJ") + 
   labs(y = "density")
 ```
-As can be seen, the typical house size is around 2,000 to 5,000 sq ft. 
+
+\ As can be seen, the typical house size is around 2,000 to 5,000 sq ft. 
 
 It is known that for a $\chi^2(4)$ distribution, the population mean is $\mu$ = 4 and the population variance is $\sigma^2$ = $2 \mu$ = 8, so we expect the mean of the sample means to be 4, and the standard error to be $\sqrt{(8 / N)}$. 
 
